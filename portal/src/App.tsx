@@ -1,10 +1,10 @@
 import Layout from "./components/Layout";
-import ProvisionForm from "./components/ProvisionForm";
+import Home from "./pages/Home";
 
 function App() {
   return (
     <Layout>
-      <ProvisionForm />
+      <Home />
     </Layout>
   );
 }

@@ -2,8 +2,10 @@ const express = require("express");
 const cors = require("cors");
 
 const applicationRoutes = require("./routes/applicationRoutes");
-
+const catalogRoutes = require("./routes/catalogRoutes");
 const app = express();
+
+app.use("/catalog", catalogRoutes);
 
 app.use(cors());
 app.use(express.json());

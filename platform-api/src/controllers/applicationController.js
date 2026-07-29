@@ -1,26 +1,57 @@
+let requestCounter = 1001;
+
 exports.createApplication = (req, res) => {
 
-    const { applicationName, runtime, environment, owner } = req.body;
+    const {
 
-    // Basic validation
-    if (!applicationName) {
-        return res.status(400).json({
-            error: "Application name is required"
-        });
-    }
-
-    console.log("==================================");
-    console.log("Provision Request Received");
-    console.log(req.body);
-    console.log("==================================");
-
-    res.status(201).json({
-        requestId: "REQ-1001",
-        status: "Accepted",
         applicationName,
-        runtime,
+        owner,
+        team,
+
+        cloud,
+        region,
         environment,
-        owner
+
+        service
+
+    } = req.body;
+
+    const requestId = `REQ-${requestCounter++}`;
+
+    console.log("Provision Request");
+
+    console.log({
+
+        requestId,
+
+        applicationName,
+        owner,
+        team,
+
+        cloud,
+        region,
+        environment,
+
+        service
+
+    });
+
+    res.status(202).json({
+
+        requestId,
+
+        status: "Accepted",
+
+        applicationName,
+        owner,
+        team,
+
+        cloud,
+        region,
+        environment,
+
+        service
+
     });
 
 };

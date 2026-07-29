@@ -1,32 +1,66 @@
-import { useState } from "react";
-import { createApplication } from "../services/api";
+import { useEffect, useState } from "react";
+import { createApplication, getCatalog } from "../services/api";
 
 export default function ProvisionForm() {
+
   const [applicationName, setApplicationName] = useState("");
   const [owner, setOwner] = useState("");
   const [team, setTeam] = useState("");
-  const [cloud, setCloud] = useState("GCP");
-  const [environment, setEnvironment] = useState("dev");
-  const [type, setType] = useState("API");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const [catalog, setCatalog] = useState<any>(null);
+
+  const [cloud, setCloud] = useState("");
+  const [region, setRegion] = useState("");
+  const [environment, setEnvironment] = useState("");
+  const [service, setService] = useState("");
+
+  const [requestId, setRequestId] = useState("");
+
+  useEffect(() => {
+
+    async function loadCatalog() {
+
+      const data = await getCatalog();
+
+      setCatalog(data);
+
+      setCloud(data.clouds[0]);
+      setRegion(data.regions[data.clouds[0]][0]);
+      setService(data.services[data.clouds[0]][0]);
+      setEnvironment(data.environments[0]);
+
+    }
+
+    loadCatalog();
+
+  }, []);
+
+  async function handleSubmit(e: React.FormEvent) {
+
     e.preventDefault();
 
     const response = await createApplication({
+
       applicationName,
       owner,
       team,
+
       cloud,
+      region,
       environment,
-      type,
+      service
+
     });
 
-    alert(`Request Accepted: ${response.requestId}`);
-  };
+    setRequestId(response.requestId);
+
+  }
 
   return (
+
     <form onSubmit={handleSubmit}>
-      <h2>Atlas Platform</h2>
+
+      <h2>Provision Application</h2>
 
       <input
         placeholder="Application Name"
@@ -52,30 +86,121 @@ export default function ProvisionForm() {
 
       <br /><br />
 
-      <select value={cloud} onChange={(e) => setCloud(e.target.value)}>
-        <option>AWS</option>
-        <option>GCP</option>
+      <select
+        value={cloud}
+        onChange={(e) => {
+
+          const selectedCloud = e.target.value;
+
+          setCloud(selectedCloud);
+
+          setRegion(catalog.regions[selectedCloud][0]);
+
+          setService(catalog.services[selectedCloud][0]);
+
+        }}
+      >
+
+        {catalog?.clouds.map((cloudName: string) => (
+
+          <option
+            key={cloudName}
+            value={cloudName}
+          >
+            {cloudName}
+          </option>
+
+        ))}
+
       </select>
 
       <br /><br />
 
-      <select value={environment} onChange={(e) => setEnvironment(e.target.value)}>
-        <option>dev</option>
-        <option>test</option>
-        <option>prod</option>
+      <select
+        value={region}
+        onChange={(e) => setRegion(e.target.value)}
+      >
+
+        {catalog?.regions[cloud]?.map((regionName: string) => (
+
+          <option
+            key={regionName}
+            value={regionName}
+          >
+            {regionName}
+          </option>
+
+        ))}
+
       </select>
 
       <br /><br />
 
-      <select value={type} onChange={(e) => setType(e.target.value)}>
-        <option>API</option>
-        <option>Web</option>
-        <option>Worker</option>
+      <select
+        value={environment}
+        onChange={(e) => setEnvironment(e.target.value)}
+      >
+
+        {catalog?.environments.map((env: string) => (
+
+          <option
+            key={env}
+            value={env}
+          >
+            {env}
+          </option>
+
+        ))}
+
       </select>
 
       <br /><br />
 
-      <button type="submit">Provision</button>
+      <select
+        value={service}
+        onChange={(e) => setService(e.target.value)}
+      >
+
+        {catalog?.services[cloud]?.map((serviceName: string) => (
+
+          <option
+            key={serviceName}
+            value={serviceName}
+          >
+            {serviceName}
+          </option>
+
+        ))}
+
+      </select>
+
+      <br /><br />
+
+      <button type="submit">
+        Provision
+      </button>
+
+      {requestId && (
+
+        <div className="success-card">
+
+          <h3>✅ Request Accepted</h3>
+
+          <p>
+            Request ID:
+            <strong> {requestId}</strong>
+          </p>
+
+          <p>
+            Provision request submitted successfully.
+          </p>
+
+        </div>
+
+      )}
+
     </form>
+
   );
+
 }

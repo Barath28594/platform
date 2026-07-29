@@ -16,3 +16,14 @@ export async function createApplication(application: any) {
 
     return response.json();
 }
+
+export async function getCatalog() {
+
+    const response = await fetch("/api/catalog");
+
+    if (!response.ok) {
+        throw new Error("Failed to load catalog");
+    }
+
+    return response.json();
+}
