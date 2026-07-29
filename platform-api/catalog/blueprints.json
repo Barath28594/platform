@@ -1,0 +1,29 @@
+{
+  "REST API": {
+    "cloud": "GCP",
+    "service": "Cloud Run",
+    "environment": "dev",
+    "region": "asia-south1"
+  },
+
+  "Web Application": {
+    "cloud": "GCP",
+    "service": "Cloud Run",
+    "environment": "dev",
+    "region": "asia-south1"
+  },
+
+  "Worker": {
+    "cloud": "AWS",
+    "service": "Lambda",
+    "environment": "dev",
+    "region": "ap-south-1"
+  },
+
+  "AI Service": {
+    "cloud": "GCP",
+    "service": "GKE",
+    "environment": "dev",
+    "region": "asia-south1"
+  }
+}

@@ -1,13 +1,26 @@
 import { useEffect, useState } from "react";
-import { createApplication, getCatalog } from "../services/api";
+
+import {
+  createApplication,
+  getCatalog,
+  getBlueprints
+} from "../services/api";
+
+import ApplicationDetails from "./ApplicationDetails";
+import InfrastructureDetails from "./InfrastructureDetails";
+import BlueprintSelector from "./BlueprintSelector";
+import SuccessCard from "./SuccessCard";
 
 export default function ProvisionForm() {
+
+  const [catalog, setCatalog] = useState<any>(null);
+  const [blueprints, setBlueprints] = useState<any>(null);
+
+  const [selectedBlueprint, setSelectedBlueprint] = useState("");
 
   const [applicationName, setApplicationName] = useState("");
   const [owner, setOwner] = useState("");
   const [team, setTeam] = useState("");
-
-  const [catalog, setCatalog] = useState<any>(null);
 
   const [cloud, setCloud] = useState("");
   const [region, setRegion] = useState("");
@@ -18,28 +31,51 @@ export default function ProvisionForm() {
 
   useEffect(() => {
 
-    async function loadCatalog() {
+    async function loadData() {
 
-      const data = await getCatalog();
+      const catalogData = await getCatalog();
+      const blueprintData = await getBlueprints();
 
-      setCatalog(data);
+      setCatalog(catalogData);
+      setBlueprints(blueprintData);
 
-      setCloud(data.clouds[0]);
-      setRegion(data.regions[data.clouds[0]][0]);
-      setService(data.services[data.clouds[0]][0]);
-      setEnvironment(data.environments[0]);
+      const firstBlueprint = Object.keys(blueprintData)[0];
+
+      setSelectedBlueprint(firstBlueprint);
+
+      setCloud(blueprintData[firstBlueprint].cloud);
+      setRegion(blueprintData[firstBlueprint].region);
+      setEnvironment(blueprintData[firstBlueprint].environment);
+      setService(blueprintData[firstBlueprint].service);
 
     }
 
-    loadCatalog();
+    loadData();
 
   }, []);
+
+  useEffect(() => {
+
+    if (!blueprints || !selectedBlueprint) {
+      return;
+    }
+
+    const blueprint = blueprints[selectedBlueprint];
+
+    setCloud(blueprint.cloud);
+    setRegion(blueprint.region);
+    setEnvironment(blueprint.environment);
+    setService(blueprint.service);
+
+  }, [selectedBlueprint]);
 
   async function handleSubmit(e: React.FormEvent) {
 
     e.preventDefault();
 
     const response = await createApplication({
+
+      blueprint: selectedBlueprint,
 
       applicationName,
       owner,
@@ -56,148 +92,61 @@ export default function ProvisionForm() {
 
   }
 
+  if (!catalog || !blueprints) {
+
+    return <h3>Loading...</h3>;
+
+  }
+
   return (
 
     <form onSubmit={handleSubmit}>
 
       <h2>Provision Application</h2>
 
-      <input
-        placeholder="Application Name"
-        value={applicationName}
-        onChange={(e) => setApplicationName(e.target.value)}
+      <BlueprintSelector
+
+        blueprints={blueprints}
+        selectedBlueprint={selectedBlueprint}
+        setSelectedBlueprint={setSelectedBlueprint}
+
       />
 
-      <br /><br />
+      <ApplicationDetails
 
-      <input
-        placeholder="Owner"
-        value={owner}
-        onChange={(e) => setOwner(e.target.value)}
+        applicationName={applicationName}
+        owner={owner}
+        team={team}
+
+        setApplicationName={setApplicationName}
+        setOwner={setOwner}
+        setTeam={setTeam}
+
       />
 
-      <br /><br />
+      <InfrastructureDetails
 
-      <input
-        placeholder="Team"
-        value={team}
-        onChange={(e) => setTeam(e.target.value)}
+        catalog={catalog}
+
+        cloud={cloud}
+        region={region}
+        environment={environment}
+        service={service}
+
+        setCloud={setCloud}
+        setRegion={setRegion}
+        setEnvironment={setEnvironment}
+        setService={setService}
+
       />
-
-      <br /><br />
-
-      <select
-        value={cloud}
-        onChange={(e) => {
-
-          const selectedCloud = e.target.value;
-
-          setCloud(selectedCloud);
-
-          setRegion(catalog.regions[selectedCloud][0]);
-
-          setService(catalog.services[selectedCloud][0]);
-
-        }}
-      >
-
-        {catalog?.clouds.map((cloudName: string) => (
-
-          <option
-            key={cloudName}
-            value={cloudName}
-          >
-            {cloudName}
-          </option>
-
-        ))}
-
-      </select>
-
-      <br /><br />
-
-      <select
-        value={region}
-        onChange={(e) => setRegion(e.target.value)}
-      >
-
-        {catalog?.regions[cloud]?.map((regionName: string) => (
-
-          <option
-            key={regionName}
-            value={regionName}
-          >
-            {regionName}
-          </option>
-
-        ))}
-
-      </select>
-
-      <br /><br />
-
-      <select
-        value={environment}
-        onChange={(e) => setEnvironment(e.target.value)}
-      >
-
-        {catalog?.environments.map((env: string) => (
-
-          <option
-            key={env}
-            value={env}
-          >
-            {env}
-          </option>
-
-        ))}
-
-      </select>
-
-      <br /><br />
-
-      <select
-        value={service}
-        onChange={(e) => setService(e.target.value)}
-      >
-
-        {catalog?.services[cloud]?.map((serviceName: string) => (
-
-          <option
-            key={serviceName}
-            value={serviceName}
-          >
-            {serviceName}
-          </option>
-
-        ))}
-
-      </select>
-
-      <br /><br />
 
       <button type="submit">
-        Provision
+
+        🚀 Provision
+
       </button>
 
-      {requestId && (
-
-        <div className="success-card">
-
-          <h3>✅ Request Accepted</h3>
-
-          <p>
-            Request ID:
-            <strong> {requestId}</strong>
-          </p>
-
-          <p>
-            Provision request submitted successfully.
-          </p>
-
-        </div>
-
-      )}
+      <SuccessCard requestId={requestId} />
 
     </form>
 

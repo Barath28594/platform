@@ -3,27 +3,35 @@ const cors = require("cors");
 
 const applicationRoutes = require("./routes/applicationRoutes");
 const catalogRoutes = require("./routes/catalogRoutes");
-const app = express();
+const blueprintRoutes = require("./routes/blueprintRoutes");
 
-app.use("/catalog", catalogRoutes);
+const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-// Health endpoint
 app.get("/health", (req, res) => {
+
     res.json({
+
         status: "healthy",
         service: "Platform API",
         version: "1.0.0"
+
     });
+
 });
 
-// Application endpoints
 app.use("/applications", applicationRoutes);
+
+app.use("/catalog", catalogRoutes);
+
+app.use("/blueprints", blueprintRoutes);
 
 const PORT = 3000;
 
 app.listen(PORT, () => {
+
     console.log(`Platform API running on port ${PORT}`);
+
 });
