@@ -28,7 +28,10 @@ export default function ProvisionForm() {
   const [service, setService] = useState("");
 
   const [requestId, setRequestId] = useState("");
+
   const [deploymentPlan, setDeploymentPlan] = useState<string[]>([]);
+
+  const [terraform, setTerraform] = useState<any>({});
 
   useEffect(() => {
 
@@ -57,9 +60,7 @@ export default function ProvisionForm() {
 
   useEffect(() => {
 
-    if (!blueprints || !selectedBlueprint) {
-      return;
-    }
+    if (!blueprints || !selectedBlueprint) return;
 
     const blueprint = blueprints[selectedBlueprint];
 
@@ -79,18 +80,26 @@ export default function ProvisionForm() {
       blueprint: selectedBlueprint,
 
       applicationName,
+
       owner,
+
       team,
 
       cloud,
+
       region,
+
       environment,
+
       service
 
     });
 
     setRequestId(response.requestId);
+
     setDeploymentPlan(response.deploymentPlan);
+
+    setTerraform(response.terraform);
 
   }
 
@@ -109,7 +118,9 @@ export default function ProvisionForm() {
       <BlueprintSelector
 
         blueprints={blueprints}
+
         selectedBlueprint={selectedBlueprint}
+
         setSelectedBlueprint={setSelectedBlueprint}
 
       />
@@ -117,11 +128,15 @@ export default function ProvisionForm() {
       <ApplicationDetails
 
         applicationName={applicationName}
+
         owner={owner}
+
         team={team}
 
         setApplicationName={setApplicationName}
+
         setOwner={setOwner}
+
         setTeam={setTeam}
 
       />
@@ -131,13 +146,19 @@ export default function ProvisionForm() {
         catalog={catalog}
 
         cloud={cloud}
+
         region={region}
+
         environment={environment}
+
         service={service}
 
         setCloud={setCloud}
+
         setRegion={setRegion}
+
         setEnvironment={setEnvironment}
+
         setService={setService}
 
       />
@@ -150,11 +171,14 @@ export default function ProvisionForm() {
 
       <SuccessCard
 
-    requestId={requestId}
+        requestId={requestId}
 
-    deploymentPlan={deploymentPlan}
+        deploymentPlan={deploymentPlan}
 
-/>
+        terraform={terraform}
+
+      />
+
     </form>
 
   );

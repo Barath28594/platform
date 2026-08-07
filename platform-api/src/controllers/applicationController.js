@@ -18,17 +18,21 @@ function createApplication(req, res) {
 
         owner: application.owner,
 
+        team: application.team,
+
         cloud: application.cloud,
 
         region: application.region,
 
         environment: application.environment,
 
-        type: application.type,
+        service: application.service,
 
         blueprint: result.blueprint,
 
-        deploymentPlan: result.deploymentPlan
+        deploymentPlan: result.deploymentPlan,
+
+        terraform: result.terraform
 
     });
 

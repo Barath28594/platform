@@ -1,49 +1,75 @@
 type Props = {
-  requestId: string;
-  deploymentPlan: string[];
+
+    requestId: string;
+
+    deploymentPlan: string[];
+
+    terraform: any;
+
 };
 
 export default function SuccessCard({
-  requestId,
-  deploymentPlan
+
+    requestId,
+
+    deploymentPlan,
+
+    terraform
+
 }: Props) {
 
-  if (!requestId) {
-    return null;
-  }
+    if (!requestId) {
 
-  return (
+        return null;
 
-    <div className="success-card">
+    }
 
-      <h3>✅ Request Accepted</h3>
+    return (
 
-      <p>
-        <strong>Request ID:</strong> {requestId}
-      </p>
+        <div className="success-card">
 
-      <p>
-        Provision request submitted successfully.
-      </p>
+            <h3>✅ Request Accepted</h3>
 
-      <hr />
+            <p>
 
-      <h4>Deployment Plan</h4>
+                <strong>Request ID:</strong> {requestId}
 
-      <ul>
+            </p>
 
-        {deploymentPlan.map((resource) => (
+            <hr />
 
-          <li key={resource}>
-            {resource}
-          </li>
+            <h4>Deployment Plan</h4>
 
-        ))}
+            <ul>
 
-      </ul>
+                {deploymentPlan.map((step) => (
 
-    </div>
+                    <li key={step}>{step}</li>
 
-  );
+                ))}
+
+            </ul>
+
+            <hr />
+
+            <h4>Terraform Generated</h4>
+
+            <ul>
+
+                {Object.keys(terraform).map((file) => (
+
+                    <li key={file}>
+
+                        📄 {file}
+
+                    </li>
+
+                ))}
+
+            </ul>
+
+        </div>
+
+    );
 
 }
