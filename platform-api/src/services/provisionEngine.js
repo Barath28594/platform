@@ -1,3 +1,7 @@
+const {
+    generateTerraform
+} = require("./terraformGenerator");
+
 function buildDeploymentPlan(application) {
 
     switch (application.service) {
@@ -5,8 +9,8 @@ function buildDeploymentPlan(application) {
         case "Cloud Run":
 
             return [
-                "Artifact Registry",
                 "Cloud Run",
+                "Artifact Registry",
                 "IAM Service Account",
                 "Secret Manager",
                 "Cloud Logging",
@@ -16,10 +20,9 @@ function buildDeploymentPlan(application) {
         case "Compute Engine":
 
             return [
-                "VPC Network",
-                "Firewall Rules",
-                "Compute Engine VM",
-                "Persistent Disk",
+                "VPC",
+                "Firewall",
+                "Compute Engine",
                 "Cloud Logging",
                 "Cloud Monitoring"
             ];
@@ -27,34 +30,20 @@ function buildDeploymentPlan(application) {
         case "GKE":
 
             return [
-                "Artifact Registry",
+                "VPC",
                 "GKE Cluster",
-                "Namespace",
-                "Workload Identity",
-                "Cloud Logging",
+                "Artifact Registry",
+                "IAM",
                 "Cloud Monitoring"
             ];
 
-        case "Lambda":
+        case "AWS Lambda":
 
             return [
+                "Lambda",
                 "IAM Role",
-                "Lambda Function",
-                "CloudWatch Logs",
-                "Secrets Manager"
-            ];
-
-        case "EKS":
-
-            return [
-                "VPC",
-                "Private Subnets",
-                "EKS Cluster",
-                "Node Group",
-                "IAM Roles",
-                "ECR Repository",
                 "CloudWatch",
-                "AWS Load Balancer Controller"
+                "S3 Bucket"
             ];
 
         case "EC2":
@@ -62,39 +51,52 @@ function buildDeploymentPlan(application) {
             return [
                 "VPC",
                 "Security Group",
-                "EC2 Instance",
-                "EBS Volume",
+                "EC2",
+                "CloudWatch"
+            ];
+
+        case "EKS":
+
+            return [
+                "VPC",
+                "EKS Cluster",
+                "IAM",
                 "CloudWatch"
             ];
 
         default:
 
-            return [
-                application.service
-            ];
+            return [];
 
     }
 
 }
 
+function buildBlueprint(application) {
+
+    return {
+
+        service: application.service,
+
+        monitoring: true,
+
+        logging: true,
+
+        secrets: true,
+
+        backup: false
+
+    };
+
+}
+
 function provisionApplication(application) {
 
-   const blueprint = {
+    const blueprint = buildBlueprint(application);
 
-    service: application.service,
+    const deploymentPlan = buildDeploymentPlan(application);
 
-    monitoring: true,
-
-    logging: true,
-
-    secrets: true,
-
-    backup:
-
-        application.service === "Compute Engine" ||
-        application.service === "EC2"
-
-};
+    const terraform = generateTerraform(application);
 
     return {
 
@@ -106,8 +108,9 @@ function provisionApplication(application) {
 
         blueprint,
 
-        deploymentPlan:
-            buildDeploymentPlan(application)
+        deploymentPlan,
+
+        terraform
 
     };
 
