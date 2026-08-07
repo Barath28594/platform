@@ -28,6 +28,7 @@ export default function ProvisionForm() {
   const [service, setService] = useState("");
 
   const [requestId, setRequestId] = useState("");
+  const [deploymentPlan, setDeploymentPlan] = useState<string[]>([]);
 
   useEffect(() => {
 
@@ -89,6 +90,7 @@ export default function ProvisionForm() {
     });
 
     setRequestId(response.requestId);
+    setDeploymentPlan(response.deploymentPlan);
 
   }
 
@@ -146,8 +148,13 @@ export default function ProvisionForm() {
 
       </button>
 
-      <SuccessCard requestId={requestId} />
+      <SuccessCard
 
+    requestId={requestId}
+
+    deploymentPlan={deploymentPlan}
+
+/>
     </form>
 
   );

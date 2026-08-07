@@ -1,57 +1,41 @@
-let requestCounter = 1001;
+const {
+    provisionApplication
+} = require("../services/provisionEngine");
 
-exports.createApplication = (req, res) => {
+function createApplication(req, res) {
 
-    const {
+    const application = req.body;
 
-        applicationName,
-        owner,
-        team,
+    const result = provisionApplication(application);
 
-        cloud,
-        region,
-        environment,
+    res.status(201).json({
 
-        service
+        requestId: result.requestId,
 
-    } = req.body;
+        status: result.status,
 
-    const requestId = `REQ-${requestCounter++}`;
+        applicationName: application.applicationName,
 
-    console.log("Provision Request");
+        owner: application.owner,
 
-    console.log({
+        cloud: application.cloud,
 
-        requestId,
+        region: application.region,
 
-        applicationName,
-        owner,
-        team,
+        environment: application.environment,
 
-        cloud,
-        region,
-        environment,
+        type: application.type,
 
-        service
+        blueprint: result.blueprint,
+
+        deploymentPlan: result.deploymentPlan
 
     });
 
-    res.status(202).json({
+}
 
-        requestId,
+module.exports = {
 
-        status: "Accepted",
-
-        applicationName,
-        owner,
-        team,
-
-        cloud,
-        region,
-        environment,
-
-        service
-
-    });
+    createApplication
 
 };

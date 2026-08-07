@@ -1,8 +1,12 @@
 type Props = {
   requestId: string;
+  deploymentPlan: string[];
 };
 
-export default function SuccessCard({ requestId }: Props) {
+export default function SuccessCard({
+  requestId,
+  deploymentPlan
+}: Props) {
 
   if (!requestId) {
     return null;
@@ -15,15 +19,28 @@ export default function SuccessCard({ requestId }: Props) {
       <h3>✅ Request Accepted</h3>
 
       <p>
-
-        Request ID:
-        <strong> {requestId}</strong>
-
+        <strong>Request ID:</strong> {requestId}
       </p>
 
       <p>
         Provision request submitted successfully.
       </p>
+
+      <hr />
+
+      <h4>Deployment Plan</h4>
+
+      <ul>
+
+        {deploymentPlan.map((resource) => (
+
+          <li key={resource}>
+            {resource}
+          </li>
+
+        ))}
+
+      </ul>
 
     </div>
 
