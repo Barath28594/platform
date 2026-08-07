@@ -32,7 +32,9 @@ function createApplication(req, res) {
 
         deploymentPlan: result.deploymentPlan,
 
-        terraform: result.terraform
+        terraform: result.terraform,
+
+        repository: result.repository
 
     });
 

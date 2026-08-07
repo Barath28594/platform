@@ -2,6 +2,10 @@ const {
     generateTerraform
 } = require("./terraformGenerator");
 
+const {
+    generateRepository
+} = require("./repositoryGenerator");
+
 function buildDeploymentPlan(application) {
 
     switch (application.service) {
@@ -21,8 +25,9 @@ function buildDeploymentPlan(application) {
 
             return [
                 "VPC",
-                "Firewall",
-                "Compute Engine",
+                "Firewall Rules",
+                "Compute Engine VM",
+                "Persistent Disk",
                 "Cloud Logging",
                 "Cloud Monitoring"
             ];
@@ -32,8 +37,8 @@ function buildDeploymentPlan(application) {
             return [
                 "VPC",
                 "GKE Cluster",
+                "Node Pool",
                 "Artifact Registry",
-                "IAM",
                 "Cloud Monitoring"
             ];
 
@@ -46,35 +51,19 @@ function buildDeploymentPlan(application) {
                 "S3 Bucket"
             ];
 
-        case "EC2":
-
-            return [
-                "VPC",
-                "Security Group",
-                "EC2",
-                "CloudWatch"
-            ];
-
-        case "EKS":
-
-            return [
-                "VPC",
-                "EKS Cluster",
-                "IAM",
-                "CloudWatch"
-            ];
-
         default:
 
-            return [];
+            return [
+                application.service
+            ];
 
     }
 
 }
 
-function buildBlueprint(application) {
+function provisionApplication(application) {
 
-    return {
+    const blueprint = {
 
         service: application.service,
 
@@ -88,15 +77,12 @@ function buildBlueprint(application) {
 
     };
 
-}
-
-function provisionApplication(application) {
-
-    const blueprint = buildBlueprint(application);
-
-    const deploymentPlan = buildDeploymentPlan(application);
-
     const terraform = generateTerraform(application);
+
+    const repository = generateRepository(
+        application,
+        terraform
+    );
 
     return {
 
@@ -108,9 +94,12 @@ function provisionApplication(application) {
 
         blueprint,
 
-        deploymentPlan,
+        deploymentPlan:
+            buildDeploymentPlan(application),
 
-        terraform
+        terraform,
+
+        repository
 
     };
 
