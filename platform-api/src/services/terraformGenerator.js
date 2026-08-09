@@ -2,13 +2,16 @@ function generateTerraform(application) {
 
     const provider = generateProvider(application);
 
-    const versions = generateVersions();
+    const versions = generateVersions(application);
 
     const variables = generateVariables();
 
+    const main = generateMain(application);
+
     const outputs = generateOutputs(application);
 
-    const main = generateMain(application);
+    const terraformVarsExample =
+        generateTerraformVarsExample(application);
 
     return {
 
@@ -18,179 +21,367 @@ function generateTerraform(application) {
 
         "variables.tf": variables,
 
+        "main.tf": main,
+
         "outputs.tf": outputs,
 
-        "main.tf": main
+        "terraform.tfvars.example":
+            terraformVarsExample
 
     };
 
 }
+
 
 function generateProvider(application) {
 
     if (application.cloud === "AWS") {
 
         return `
-
 provider "aws" {
 
-    region = "${application.region}"
+  region = var.region
 
 }
-
 `;
 
     }
 
     return `
-
 provider "google" {
 
-    project = "velocity-demo"
+  project = var.gcp_project
 
-    region = "${application.region}"
+  region = var.region
 
 }
-
 `;
 
 }
 
-function generateVersions() {
 
-    return `
+function generateVersions(application) {
 
+    if (application.cloud === "AWS") {
+
+        return `
 terraform {
 
-    required_version = ">=1.5"
+  required_version = ">= 1.5.0"
+
+  required_providers {
+
+    aws = {
+
+      source  = "hashicorp/aws"
+
+      version = "~> 6.0"
+
+    }
+
+  }
 
 }
+`;
 
+    }
+
+    return `
+terraform {
+
+  required_version = ">= 1.5.0"
+
+  required_providers {
+
+    google = {
+
+      source  = "hashicorp/google"
+
+      version = "~> 6.0"
+
+    }
+
+  }
+
+}
 `;
 
 }
+
 
 function generateVariables() {
 
     return `
+variable "gcp_project" {
+
+  description = "GCP project ID"
+
+  type = string
+
+}
+
+
+variable "region" {
+
+  description = "Cloud region"
+
+  type = string
+
+}
+
 
 variable "application_name" {
 
-    type = string
+  description = "Application name"
+
+  type = string
 
 }
 
+
+variable "container_image" {
+
+  description = "Container image"
+
+  type = string
+
+}
 `;
 
 }
 
-function generateOutputs(application) {
-
-    return `
-
-output "application_name" {
-
-    value = "${application.applicationName}"
-
-}
-
-`;
-
-}
 
 function generateMain(application) {
 
-    switch (application.service) {
+    if (application.cloud === "GCP") {
 
-        case "Cloud Run":
+        switch (application.service) {
 
-            return `
+            case "Cloud Run":
 
-resource "google_cloud_run_service" "app" {
+                return `
+resource "google_project_service" "run" {
 
-    name = "${application.applicationName}"
+  project = var.gcp_project
 
-    location = "${application.region}"
+  service = "run.googleapis.com"
 
-}
-
-`;
-
-        case "Compute Engine":
-
-            return `
-
-resource "google_compute_instance" "vm" {
-
-    name = "${application.applicationName}"
-
-    machine_type = "e2-medium"
-
-    zone = "${application.region}-a"
+  disable_on_destroy = false
 
 }
 
-`;
 
-        case "GKE":
+resource "google_cloud_run_v2_service" "app" {
 
-            return `
+  name = var.application_name
 
-resource "google_container_cluster" "cluster" {
+  location = var.region
 
-    name = "${application.applicationName}"
+  deletion_protection = false
 
-    location = "${application.region}"
 
-}
+  template {
 
-`;
+    containers {
 
-        case "AWS Lambda":
+      image = var.container_image
 
-            return `
+      ports {
 
-resource "aws_lambda_function" "lambda" {
+        container_port = 8080
 
-    function_name = "${application.applicationName}"
-
-}
-
-`;
-
-        case "EC2":
-
-            return `
-
-resource "aws_instance" "vm" {
-
-    ami = "ami-xxxxxxxx"
-
-    instance_type = "t3.medium"
-
-}
-
-`;
-
-        case "EKS":
-
-            return `
-
-resource "aws_eks_cluster" "cluster" {
-
-    name = "${application.applicationName}"
-
-}
-
-`;
-
-        default:
-
-            return "// Unsupported service";
+      }
 
     }
 
+  }
+
+
+  depends_on = [
+
+    google_project_service.run
+
+  ]
+
 }
+`;
+
+            case "Compute Engine":
+
+                return `
+resource "google_compute_instance" "vm" {
+
+  name = var.application_name
+
+  machine_type = "e2-medium"
+
+  zone = "${application.region}-a"
+
+
+  boot_disk {
+
+    initialize_params {
+
+      image = "debian-cloud/debian-12"
+
+    }
+
+  }
+
+
+  network_interface {
+
+    network = "default"
+
+    access_config {}
+
+  }
+
+}
+`;
+
+            case "GKE":
+
+                return `
+resource "google_container_cluster" "cluster" {
+
+  name = var.application_name
+
+  location = var.region
+
+  deletion_protection = false
+
+
+  initial_node_count = 1
+
+}
+`;
+
+            default:
+
+                return `
+# Unsupported GCP service
+
+# Service: ${application.service}
+`;
+
+        }
+
+    }
+
+
+    if (application.cloud === "AWS") {
+
+        switch (application.service) {
+
+            case "Lambda":
+
+            case "AWS Lambda":
+
+                return `
+resource "aws_lambda_function" "lambda" {
+
+  function_name = var.application_name
+
+}
+`;
+
+            case "EC2":
+
+                return `
+resource "aws_instance" "vm" {
+
+  ami = "ami-xxxxxxxx"
+
+  instance_type = "t3.medium"
+
+}
+`;
+
+            case "EKS":
+
+                return `
+resource "aws_eks_cluster" "cluster" {
+
+  name = var.application_name
+
+}
+`;
+
+            default:
+
+                return `
+# Unsupported AWS service
+
+# Service: ${application.service}
+`;
+
+        }
+
+    }
+
+
+    return `
+# Unsupported cloud
+
+# Cloud: ${application.cloud}
+
+# Service: ${application.service}
+`;
+
+}
+
+
+function generateOutputs(application) {
+
+    if (
+        application.cloud === "GCP" &&
+        application.service === "Cloud Run"
+    ) {
+
+        return `
+output "application_name" {
+
+  value = google_cloud_run_v2_service.app.name
+
+}
+
+
+output "service_url" {
+
+  value = google_cloud_run_v2_service.app.uri
+
+}
+`;
+
+    }
+
+
+    return `
+output "application_name" {
+
+  value = var.application_name
+
+}
+`;
+
+}
+
+
+function generateTerraformVarsExample(application) {
+
+    return `
+gcp_project = "YOUR_GCP_PROJECT_ID"
+
+region = "${application.region}"
+
+application_name = "${application.applicationName}"
+
+container_image = "us-docker.pkg.dev/cloudrun/container/hello"
+`;
+
+}
+
 
 module.exports = {
 

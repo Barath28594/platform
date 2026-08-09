@@ -1,10 +1,6 @@
 const {
     generateTerraform
-} = require("./terraformGenerator");
-
-const {
-    generateRepository
-} = require("./repositoryGenerator");
+} = require("../terraform/terraformGenerator");
 
 function buildDeploymentPlan(application) {
 
@@ -79,11 +75,6 @@ function provisionApplication(application) {
 
     const terraform = generateTerraform(application);
 
-    const repository = generateRepository(
-        application,
-        terraform
-    );
-
     return {
 
         requestId:
@@ -94,19 +85,11 @@ function provisionApplication(application) {
 
         blueprint,
 
-        deploymentPlan:
-            buildDeploymentPlan(application),
-
-        terraform,
-
-        repository
+        terraform
 
     };
-
 }
 
 module.exports = {
-
     provisionApplication
-
 };

@@ -1,55 +1,98 @@
 require("dotenv").config();
 
 const {
-
     createRepository,
-
     uploadRepositoryFiles
-
 } = require("./src/services/githubService");
+
+const {
+    generateTerraform
+} = require("./src/services/terraformGenerator");
+
+const {
+    generateRepository
+} = require("./src/services/repositoryGenerator");
+
 
 async function run() {
 
-    const repo = await createRepository({
+    const application = {
 
-        applicationName: "upload-test"
+        applicationName: "velocity-cloudrun-demo",
 
-    });
+        owner: "Barath",
 
-    await uploadRepositoryFiles(
+        team: "Platform",
 
-        repo.name,
+        cloud: "GCP",
 
-        {
+        region: "asia-south1",
 
-            "README.md":
-                "# Upload Test",
+        environment: "dev",
 
-            "main.tf":
-                'resource "null_resource" "demo" {}',
+        service: "Cloud Run"
 
-            ".github/workflows/demo.yml":
+    };
 
-`name: Demo
 
-on: push
+    console.log("Generating Terraform...");
 
-jobs:
+    const terraform =
+        generateTerraform(application);
 
-  test:
 
-    runs-on: ubuntu-latest
+    console.log("Generating repository files...");
 
-    steps:
+    const files =
+        generateRepository(
+            application,
+            terraform
+        );
 
-      - run: echo Hello`
 
-        }
+    console.log("Creating GitHub repository...");
 
+    const repo =
+        await createRepository(application);
+
+
+    console.log(
+        `Repository created: ${repo.htmlUrl}`
     );
 
-    console.log(repo);
+
+    console.log("Uploading repository files...");
+
+
+    await uploadRepositoryFiles(
+        repo.name,
+        files
+    );
+
+
+    console.log("");
+    console.log("=================================");
+    console.log("Velocity repository created");
+    console.log("=================================");
+    console.log("");
+    console.log("Repository:");
+    console.log(repo.htmlUrl);
+    console.log("");
+    console.log("Files uploaded:");
+
+    Object.keys(files).forEach(
+        file => console.log(`- ${file}`)
+    );
 
 }
 
-run();
+
+run().catch(error => {
+
+    console.error("");
+    console.error("Repository generation failed:");
+    console.error(error);
+
+    process.exit(1);
+
+});
