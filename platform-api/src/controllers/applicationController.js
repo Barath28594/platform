@@ -1,47 +1,40 @@
-const {
-    provisionApplication
-} = require("../services/provisionEngine");
+const { provisionApplication } = require("../services/provisionEngine");
 
-function createApplication(req, res) {
-
+async function createApplication(req, res) {
+  try {
     const application = req.body;
 
-    const result = provisionApplication(application);
+    const result = await provisionApplication(application);
 
     res.status(201).json({
+      requestId: result.requestId,
+      status: result.status,
 
-        requestId: result.requestId,
+      applicationName: application.applicationName,
+      owner: application.owner,
+      team: application.team,
 
-        status: result.status,
+      cloud: application.cloud,
+      region: application.region,
+      environment: application.environment,
+      service: application.service,
 
-        applicationName: application.applicationName,
+      blueprint: result.blueprint,
+      deploymentPlan: result.deploymentPlan,
 
-        owner: application.owner,
+      terraform: result.terraform,
 
-        team: application.team,
-
-        cloud: application.cloud,
-
-        region: application.region,
-
-        environment: application.environment,
-
-        service: application.service,
-
-        blueprint: result.blueprint,
-
-        deploymentPlan: result.deploymentPlan,
-
-        terraform: result.terraform,
-
-        repository: result.repository
-
+      repository: result.repository,
     });
+  } catch (error) {
+    console.error(error);
 
+    res.status(500).json({
+      error: error.message,
+    });
+  }
 }
 
 module.exports = {
-
-    createApplication
-
+  createApplication,
 };

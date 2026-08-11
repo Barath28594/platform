@@ -19,6 +19,11 @@ terraform {
       version = "~> 6.0"
     }
   }
+
+  backend "gcs" {
+    bucket = "velocity-terraform-state"
+    prefix = "applications/${application.applicationName}"
+  }
 }
 `,
 

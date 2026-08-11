@@ -1,95 +1,95 @@
+const { generateTerraform } = require("../terraform/terraformGenerator");
+const { generateRepository } = require("./repositoryGenerator");
 const {
-    generateTerraform
-} = require("../terraform/terraformGenerator");
+  createRepository,
+  uploadRepositoryFiles,
+  configureRepository,
+} = require("./githubService");
 
 function buildDeploymentPlan(application) {
+  switch (application.service) {
+    case "Cloud Run":
+      return [
+        "Cloud Run",
+        "Artifact Registry",
+        "IAM Service Account",
+        "Secret Manager",
+        "Cloud Logging",
+        "Cloud Monitoring",
+      ];
 
-    switch (application.service) {
+    case "Compute Engine":
+      return [
+        "VPC",
+        "Firewall Rules",
+        "Compute Engine VM",
+        "Persistent Disk",
+        "Cloud Logging",
+        "Cloud Monitoring",
+      ];
 
-        case "Cloud Run":
+    case "GKE":
+      return [
+        "VPC",
+        "GKE Cluster",
+        "Node Pool",
+        "Artifact Registry",
+        "Cloud Monitoring",
+      ];
 
-            return [
-                "Cloud Run",
-                "Artifact Registry",
-                "IAM Service Account",
-                "Secret Manager",
-                "Cloud Logging",
-                "Cloud Monitoring"
-            ];
+    case "AWS Lambda":
+      return [
+        "Lambda",
+        "IAM Role",
+        "CloudWatch",
+        "S3 Bucket",
+      ];
 
-        case "Compute Engine":
-
-            return [
-                "VPC",
-                "Firewall Rules",
-                "Compute Engine VM",
-                "Persistent Disk",
-                "Cloud Logging",
-                "Cloud Monitoring"
-            ];
-
-        case "GKE":
-
-            return [
-                "VPC",
-                "GKE Cluster",
-                "Node Pool",
-                "Artifact Registry",
-                "Cloud Monitoring"
-            ];
-
-        case "AWS Lambda":
-
-            return [
-                "Lambda",
-                "IAM Role",
-                "CloudWatch",
-                "S3 Bucket"
-            ];
-
-        default:
-
-            return [
-                application.service
-            ];
-
-    }
-
+    default:
+      return [application.service];
+  }
 }
 
-function provisionApplication(application) {
+async function provisionApplication(application) {
+  const blueprint = {
+    service: application.service,
+    monitoring: true,
+    logging: true,
+    secrets: true,
+    backup: false,
+  };
 
-    const blueprint = {
+  const terraform = generateTerraform(application);
 
-        service: application.service,
+const repositoryFiles = generateRepository(
+  application,
+  terraform
+);
 
-        monitoring: true,
+const repository = await createRepository(application);
 
-        logging: true,
+await configureRepository(repository.name);
 
-        secrets: true,
+await uploadRepositoryFiles(
+  repository.name,
+  repositoryFiles
+);
 
-        backup: false
+  return {
+    requestId: "REQ-" + Math.floor(Math.random() * 9000 + 1000),
 
-    };
+    status: "Accepted",
 
-    const terraform = generateTerraform(application);
+    blueprint,
 
-    return {
+    deploymentPlan: buildDeploymentPlan(application),
 
-        requestId:
-            "REQ-" +
-            Math.floor(Math.random() * 9000 + 1000),
+    repository,
 
-        status: "Accepted",
-
-        blueprint,
-
-        terraform
-
-    };
+    terraform,
+  };
 }
 
 module.exports = {
-    provisionApplication
+  provisionApplication,
 };
