@@ -98,42 +98,97 @@ async function setRepositorySecret(repoName, name, value) {
   );
 }
 
-async function configureRepository(repoName) {
-  console.log(`Configuring GitHub Actions for ${repoName}...`);
+async function createProductionEnvironment(repoName) {
 
-  // Repository variables
-  await setRepositoryVariable(
-    repoName,
-    "GCP_PROJECT_ID",
-    process.env.GCP_PROJECT_ID
-  );
+    console.log(`Creating production environment for ${repoName}...`);
 
-  if (process.env.CONTAINER_IMAGE) {
-    await setRepositoryVariable(
-      repoName,
-      "CONTAINER_IMAGE",
-      process.env.CONTAINER_IMAGE
+    // Get the authenticated GitHub user
+    const userResponse = await octokit.request(
+        "GET /user",
+        {
+            headers: {
+                "X-GitHub-Api-Version": "2022-11-28",
+            },
+        }
     );
-  }
 
-  // Repository secrets
-  await setRepositorySecret(
-    repoName,
-    "WIF_PROVIDER",
-    process.env.WIF_PROVIDER
-  );
+    const reviewerId = userResponse.data.id;
 
-  await setRepositorySecret(
-    repoName,
-    "WIF_SERVICE_ACCOUNT",
-    process.env.WIF_SERVICE_ACCOUNT
-  );
+    await octokit.request(
+        "PUT /repos/{owner}/{repo}/environments/{environment_name}",
+        {
+            owner: process.env.GITHUB_OWNER,
+            repo: repoName,
+            environment_name: "production",
 
-  console.log(`GitHub Actions configuration completed for ${repoName}`);
+            reviewers: [
+                {
+                    type: "User",
+                    id: reviewerId,
+                },
+            ],
+
+            prevent_self_review: false,
+
+            deployment_branch_policy: {
+                protected_branches: false,
+                custom_branch_policies: false,
+            },
+
+            headers: {
+                "X-GitHub-Api-Version": "2022-11-28",
+            },
+        }
+    );
+
+    console.log(
+        `Production environment created for ${repoName}. Reviewer: ${userResponse.data.login}`
+    );
+}
+
+async function configureRepository(repoName) {
+
+    console.log(`Configuring GitHub Actions for ${repoName}...`);
+
+    // Repository variables
+    await setRepositoryVariable(
+        repoName,
+        "GCP_PROJECT_ID",
+        process.env.GCP_PROJECT_ID
+    );
+
+    if (process.env.CONTAINER_IMAGE) {
+        await setRepositoryVariable(
+            repoName,
+            "CONTAINER_IMAGE",
+            process.env.CONTAINER_IMAGE
+        );
+    }
+
+    // Repository secrets
+    await setRepositorySecret(
+        repoName,
+        "WIF_PROVIDER",
+        process.env.WIF_PROVIDER
+    );
+
+    await setRepositorySecret(
+        repoName,
+        "WIF_SERVICE_ACCOUNT",
+        process.env.WIF_SERVICE_ACCOUNT
+    );
+
+    // GitHub Environment + approval
+    await createProductionEnvironment(repoName);
+
+    console.log(
+        `GitHub Actions configuration completed for ${repoName}`
+    );
 }
 
 module.exports = {
-  createRepository,
-  uploadRepositoryFiles,
-  configureRepository,
+    createRepository,
+    uploadRepositoryFiles,
+    configureRepository,
+    createProductionEnvironment,
 };
