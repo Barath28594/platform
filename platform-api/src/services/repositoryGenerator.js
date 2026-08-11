@@ -5,20 +5,43 @@ const {
 function generateRepository(application, terraform) {
 
     return {
+    ...terraform,
 
-        ...terraform,
+    ".github/workflows/terraform.yml":
+        generatePipeline(application),
 
-        ".github/workflows/terraform.yml":
-            generatePipeline(application),
+    ".gitignore":
+        generateGitignore(),
 
-        ".gitignore":
-            generateGitignore(),
+    "velocity.yaml":
+        generateVelocityMetadata(application),
 
-        "README.md":
-            generateReadme(application)
-
-    };
+    "README.md":
+        generateReadme(application)
+};
 }
+
+function generateVelocityMetadata(application) {
+    return `application:
+  name: ${application.applicationName}
+  owner: ${application.owner}
+  team: ${application.team}
+
+cloud:
+  provider: ${application.cloud}
+  project: ${process.env.GCP_PROJECT_ID}
+  region: ${application.region}
+
+service:
+  type: ${application.service}
+  container_image: ${process.env.CONTAINER_IMAGE || "us-docker.pkg.dev/cloudrun/container/hello"}
+
+terraform:
+  state_bucket: velocity-terraform-state
+  state_prefix: applications/${application.applicationName}
+`;
+}
+
 
 function generateReadme(application) {
 
@@ -66,10 +89,8 @@ function generateGitignore() {
 *.tfstate
 *.tfstate.*
 crash.log
-terraform.tfvars
 *.tfplan
 `;
-
 }
 
 module.exports = {

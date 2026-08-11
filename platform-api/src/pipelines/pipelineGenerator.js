@@ -47,13 +47,7 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan
-        run: |
-          terraform plan -out=tfplan
-        env:
-          TF_VAR_gcp_project: \${{ vars.GCP_PROJECT_ID }}
-          TF_VAR_region: "${application.region}"
-          TF_VAR_application_name: "${application.applicationName}"
-          TF_VAR_container_image: \${{ vars.CONTAINER_IMAGE }}
+        run: terraform plan -out=tfplan
 
       - name: Upload Terraform Plan
         uses: actions/upload-artifact@v4
@@ -98,11 +92,6 @@ jobs:
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
-        env:
-          TF_VAR_gcp_project: \${{ vars.GCP_PROJECT_ID }}
-          TF_VAR_region: "${application.region}"
-          TF_VAR_application_name: "${application.applicationName}"
-          TF_VAR_container_image: \${{ vars.CONTAINER_IMAGE }}
 `;
     }
 

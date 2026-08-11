@@ -94,12 +94,15 @@ output "service_url" {
 }
 `,
 
-"terraform.tfvars.example": `
-gcp_project      = "YOUR_GCP_PROJECT_ID"
+"terraform.tfvars": `gcp_project      = "YOUR_GCP_PROJECT_ID"
 region           = "${application.region}"
 application_name = "${application.applicationName}"
-container_image  = "us-docker.pkg.dev/cloudrun/container/hello"
-`,
+container_image  = "us-docker.pkg.dev/cloudrun/container/hello"`,
+
+"terraform.tfvars.example": `gcp_project      = "YOUR_GCP_PROJECT_ID"
+region           = "${application.region}"
+application_name = "${application.applicationName}"
+container_image  = "us-docker.pkg.dev/cloudrun/container/hello"`,
 
         "README.md": `
 # ${application.applicationName}
