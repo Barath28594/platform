@@ -131,7 +131,7 @@ async function createProductionEnvironment(repoName) {
             prevent_self_review: false,
 
             deployment_branch_policy: {
-                protected_branches: false,
+                protected_branches: true,
                 custom_branch_policies: false,
             },
 
