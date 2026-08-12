@@ -50,12 +50,7 @@ variable "container_image" {
 `,
 
         "main.tf": `
-resource "google_project_service" "run" {
-  project = var.gcp_project
-  service = "run.googleapis.com"
 
-  disable_on_destroy = false
-}
 
 resource "google_cloud_run_v2_service" "app" {
 
@@ -78,9 +73,7 @@ resource "google_cloud_run_v2_service" "app" {
 
   }
 
-  depends_on = [
-    google_project_service.run
-  ]
+ 
 }
 `,
 
