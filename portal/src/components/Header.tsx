@@ -1,29 +1,26 @@
 export default function Header() {
+  return (
+    <header className="topbar">
+      <div>
+        <div className="eyebrow">INTERNAL DEVELOPER PLATFORM</div>
 
-    return (
+        <h2>Provision Application</h2>
 
-        <header className="header">
+        <p>
+          Build secure cloud infrastructure in minutes.
+        </p>
+      </div>
 
-            <div>
+      <div className="topbar-actions">
+        <div className="environment-pill">
+          <span className="status-dot" />
+          Platform Healthy
+        </div>
 
-                <h2>
-                    Provision Application
-                </h2>
-
-                <p>
-                    Build secure cloud applications in minutes.
-                </p>
-
-            </div>
-
-            <div className="status">
-
-                🟢 Platform Healthy
-
-            </div>
-
-        </header>
-
-    );
-
+        <div className="avatar">
+          BK
+        </div>
+      </div>
+    </header>
+  );
 }

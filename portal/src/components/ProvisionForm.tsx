@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import {
   createApplication,
   getCatalog,
-  getBlueprints
+  getBlueprints,
 } from "../services/api";
 
 import ApplicationDetails from "./ApplicationDetails";
@@ -12,7 +12,6 @@ import BlueprintSelector from "./BlueprintSelector";
 import SuccessCard from "./SuccessCard";
 
 export default function ProvisionForm() {
-
   const [catalog, setCatalog] = useState<any>(null);
   const [blueprints, setBlueprints] = useState<any>(null);
 
@@ -33,154 +32,254 @@ export default function ProvisionForm() {
 
   const [terraform, setTerraform] = useState<any>({});
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
-
     async function loadData() {
+      try {
+        const catalogData = await getCatalog();
+        const blueprintData = await getBlueprints();
 
-      const catalogData = await getCatalog();
-      const blueprintData = await getBlueprints();
+        setCatalog(catalogData);
+        setBlueprints(blueprintData);
 
-      setCatalog(catalogData);
-      setBlueprints(blueprintData);
+        const firstBlueprint = Object.keys(blueprintData)[0];
 
-      const firstBlueprint = Object.keys(blueprintData)[0];
+        if (firstBlueprint) {
+          setSelectedBlueprint(firstBlueprint);
 
-      setSelectedBlueprint(firstBlueprint);
-
-      setCloud(blueprintData[firstBlueprint].cloud);
-      setRegion(blueprintData[firstBlueprint].region);
-      setEnvironment(blueprintData[firstBlueprint].environment);
-      setService(blueprintData[firstBlueprint].service);
-
+          setCloud(blueprintData[firstBlueprint].cloud);
+          setRegion(blueprintData[firstBlueprint].region);
+          setEnvironment(blueprintData[firstBlueprint].environment);
+          setService(blueprintData[firstBlueprint].service);
+        }
+      } catch (error) {
+        console.error("Failed to load platform catalog:", error);
+      }
     }
 
     loadData();
-
   }, []);
 
   useEffect(() => {
-
-    if (!blueprints || !selectedBlueprint) return;
+    if (!blueprints || !selectedBlueprint) {
+      return;
+    }
 
     const blueprint = blueprints[selectedBlueprint];
+
+    if (!blueprint) {
+      return;
+    }
 
     setCloud(blueprint.cloud);
     setRegion(blueprint.region);
     setEnvironment(blueprint.environment);
     setService(blueprint.service);
+  }, [selectedBlueprint, blueprints]);
 
-  }, [selectedBlueprint]);
-
-  async function handleSubmit(e: React.FormEvent) {
-
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    const response = await createApplication({
+    if (!applicationName.trim()) {
+      alert("Application name is required.");
+      return;
+    }
 
-      blueprint: selectedBlueprint,
+    if (!owner.trim()) {
+      alert("Application owner is required.");
+      return;
+    }
 
-      applicationName,
+    if (!team.trim()) {
+      alert("Infrastructure operator is required.");
+      return;
+    }
 
-      owner,
+    try {
+      setIsSubmitting(true);
 
-      team,
+      const response = await createApplication({
+        blueprint: selectedBlueprint,
+        applicationName,
+        owner,
+        team,
+        cloud,
+        region,
+        environment,
+        service,
+      });
 
-      cloud,
-
-      region,
-
-      environment,
-
-      service
-
-    });
-
-    setRequestId(response.requestId);
-
-    setDeploymentPlan(response.deploymentPlan);
-
-    setTerraform(response.terraform);
-
+      setRequestId(response.requestId);
+      setDeploymentPlan(response.deploymentPlan || []);
+      setTerraform(response.terraform || {});
+    } catch (error) {
+      console.error("Provision request failed:", error);
+      alert("Provision request failed. Please check the Platform API.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   if (!catalog || !blueprints) {
+    return (
+      <div className="loading-state">
+        <div className="loading-spinner"></div>
 
-    return <h3>Loading...</h3>;
-
+        <div>
+          <strong>Loading platform catalog</strong>
+          <span>Preparing available blueprints and infrastructure options...</span>
+        </div>
+      </div>
+    );
   }
 
   return (
+    <form className="provision-form" onSubmit={handleSubmit}>
+      {/* =====================================================
+          REQUEST HEADER
+      ====================================================== */}
 
-    <form onSubmit={handleSubmit}>
+      <div className="provision-header">
+        <div className="provision-header-content">
+          <div className="section-eyebrow">PLATFORM REQUEST</div>
 
-      <h2>Provision Application</h2>
+          <h2>Provision Application</h2>
 
-      <BlueprintSelector
+          <p>
+            Define your application and infrastructure requirements.
+            Velocity will generate and provision the required cloud resources.
+          </p>
+        </div>
 
-        blueprints={blueprints}
+        <div className="request-status">
+          <span className="status-dot"></span>
+          <span>Ready to provision</span>
+        </div>
+      </div>
 
-        selectedBlueprint={selectedBlueprint}
+      {/* =====================================================
+          BLUEPRINT
+      ====================================================== */}
 
-        setSelectedBlueprint={setSelectedBlueprint}
+      <section className="form-section blueprint-section">
+        <div className="section-heading">
+          <div className="section-icon">✦</div>
 
-      />
+          <div className="section-heading-content">
+            <h3>Blueprint</h3>
 
-      <ApplicationDetails
+            <p>
+              Start with a predefined platform blueprint.
+            </p>
+          </div>
+        </div>
 
-        applicationName={applicationName}
+        <div className="field-group blueprint-field">
+          <label htmlFor="blueprint">
+            Blueprint
+          </label>
 
-        owner={owner}
+          <BlueprintSelector
+            blueprints={blueprints}
+            selectedBlueprint={selectedBlueprint}
+            setSelectedBlueprint={setSelectedBlueprint}
+          />
+        </div>
+      </section>
 
-        team={team}
+      {/* =====================================================
+          DIVIDER
+      ====================================================== */}
 
-        setApplicationName={setApplicationName}
+      <div className="form-divider"></div>
 
-        setOwner={setOwner}
+      {/* =====================================================
+          DETAILS GRID
+      ====================================================== */}
 
-        setTeam={setTeam}
+      <div className="details-grid">
 
-      />
+        {/* APPLICATION */}
 
-      <InfrastructureDetails
+        <section className="form-section detail-section">
+          <ApplicationDetails
+            applicationName={applicationName}
+            owner={owner}
+            team={team}
+            setApplicationName={setApplicationName}
+            setOwner={setOwner}
+            setTeam={setTeam}
+          />
+        </section>
 
-        catalog={catalog}
+        {/* INFRASTRUCTURE */}
 
-        cloud={cloud}
+        <section className="form-section detail-section">
+          <InfrastructureDetails
+            catalog={catalog}
+            cloud={cloud}
+            region={region}
+            environment={environment}
+            service={service}
+            setCloud={setCloud}
+            setRegion={setRegion}
+            setEnvironment={setEnvironment}
+            setService={setService}
+          />
+        </section>
 
-        region={region}
+      </div>
 
-        environment={environment}
+      {/* =====================================================
+          ACTION BAR
+      ====================================================== */}
 
-        service={service}
+      <div className="provision-action">
+        <div className="provision-action-copy">
+          <div className="action-icon">✓</div>
 
-        setCloud={setCloud}
+          <div>
+            <strong>Ready to provision?</strong>
 
-        setRegion={setRegion}
+            <span>
+              Review your configuration and submit the request.
+            </span>
+          </div>
+        </div>
 
-        setEnvironment={setEnvironment}
+        <button
+          type="submit"
+          className="provision-button"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <span className="button-spinner"></span>
+              Processing Request...
+            </>
+          ) : (
+            <>
+              <span>🚀</span>
+              Provision Application
+            </>
+          )}
+        </button>
+      </div>
 
-        setService={setService}
+      {/* =====================================================
+          SUCCESS
+      ====================================================== */}
 
-      />
-
-      <button type="submit">
-
-        🚀 Provision
-
-      </button>
-
-      <SuccessCard
-
-        requestId={requestId}
-
-        deploymentPlan={deploymentPlan}
-
-        terraform={terraform}
-
-      />
-
+      {requestId && (
+        <div className="success-wrapper">
+          <SuccessCard
+            requestId={requestId}
+            deploymentPlan={deploymentPlan}
+            terraform={terraform}
+          />
+        </div>
+      )}
     </form>
-
   );
-
 }

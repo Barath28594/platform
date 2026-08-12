@@ -7,49 +7,24 @@ type Props = {
 export default function BlueprintSelector({
   blueprints,
   selectedBlueprint,
-  setSelectedBlueprint
+  setSelectedBlueprint,
 }: Props) {
-
   return (
-
-    <>
-
-      <label>
-
-        <strong>Blueprint</strong>
-
-      </label>
-
-      <br /><br />
-
-      <select
-        value={selectedBlueprint}
-        onChange={(e) => setSelectedBlueprint(e.target.value)}
-      >
-
-        {
-
-          Object.keys(blueprints).map((blueprint) => (
-
-            <option
-              key={blueprint}
-              value={blueprint}
-            >
-
-              {blueprint}
-
-            </option>
-
-          ))
-
-        }
-
-      </select>
-
-      <br /><br />
-
-    </>
-
+    <select
+      id="blueprint"
+      value={selectedBlueprint}
+      onChange={(e) =>
+        setSelectedBlueprint(e.target.value)
+      }
+    >
+      {Object.keys(blueprints).map((blueprintName) => (
+        <option
+          key={blueprintName}
+          value={blueprintName}
+        >
+          {blueprintName}
+        </option>
+      ))}
+    </select>
   );
-
 }

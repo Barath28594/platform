@@ -1,49 +1,64 @@
 export default function Sidebar() {
+  return (
+    <aside className="sidebar">
+      <div className="brand">
+        <div className="brand-mark">V</div>
 
-    return (
+        <div>
+          <h1>VELOCITY</h1>
+          <p>Internal Developer Platform</p>
+        </div>
+      </div>
 
-        <aside className="sidebar">
+      <nav className="sidebar-nav">
+        <div className="nav-section">
+          <span>PLATFORM</span>
 
-            <div className="logo">
+          <div className="menu-item active">
+            <span className="nav-icon">⌂</span>
+            Dashboard
+          </div>
 
-                <h1>🚀 VELOCITY</h1>
+          <div className="menu-item">
+            <span className="nav-icon">＋</span>
+            Provision
+          </div>
 
-                <p>
-                    Internal Developer Platform
-                </p>
+          <div className="menu-item">
+            <span className="nav-icon">◈</span>
+            Service Catalog
+          </div>
 
-            </div>
+          <div className="menu-item">
+            <span className="nav-icon">◷</span>
+            Requests
+          </div>
+        </div>
 
-            <nav>
+        <div className="nav-section">
+          <span>INSIGHTS</span>
 
-                <div className="menu-item active">
-                    Dashboard
-                </div>
+          <div className="menu-item">
+            <span className="nav-icon">⌁</span>
+            Analytics
+          </div>
 
-                <div className="menu-item">
-                    Provision
-                </div>
+          <div className="menu-item">
+            <span className="nav-icon">⚙</span>
+            Settings
+          </div>
+        </div>
+      </nav>
 
-                <div className="menu-item">
-                    Service Catalog
-                </div>
-
-                <div className="menu-item">
-                    Requests
-                </div>
-
-                <div className="menu-item">
-                    Analytics
-                </div>
-
-                <div className="menu-item">
-                    Settings
-                </div>
-
-            </nav>
-
-        </aside>
-
-    );
-
+      <div className="sidebar-footer">
+        <div className="platform-status">
+          <span className="status-dot" />
+          <div>
+            <strong>Platform Online</strong>
+            <small>All systems operational</small>
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
 }

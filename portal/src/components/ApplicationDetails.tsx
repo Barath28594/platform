@@ -2,6 +2,7 @@ type Props = {
   applicationName: string;
   owner: string;
   team: string;
+
   setApplicationName: (value: string) => void;
   setOwner: (value: string) => void;
   setTeam: (value: string) => void;
@@ -17,29 +18,69 @@ export default function ApplicationDetails({
 }: Props) {
   return (
     <>
-      <input
-        placeholder="Application Name"
-        value={applicationName}
-        onChange={(e) => setApplicationName(e.target.value)}
-      />
+      <div className="section-heading">
+        <div className="section-icon">◇</div>
 
-      <br /><br />
+        <div className="section-heading-content">
+          <h3>Application Details</h3>
 
-      <input
-        placeholder="Owner"
-        value={owner}
-        onChange={(e) => setOwner(e.target.value)}
-      />
+          <p>
+            Define the ownership and identity of your application.
+          </p>
+        </div>
+      </div>
 
-      <br /><br />
+      <div className="fields-stack">
 
-      <input
-        placeholder="Team"
-        value={team}
-        onChange={(e) => setTeam(e.target.value)}
-      />
+        <div className="field-group">
+          <label htmlFor="application-name">
+            Application Name
+            <span className="required">*</span>
+          </label>
 
-      <br /><br />
+          <input
+            id="application-name"
+            type="text"
+            placeholder="e.g. inventory-api"
+            value={applicationName}
+            onChange={(e) => setApplicationName(e.target.value)}
+            autoComplete="off"
+          />
+        </div>
+
+        <div className="field-group">
+          <label htmlFor="application-owner">
+            Application Owner
+            <span className="required">*</span>
+          </label>
+
+          <input
+            id="application-owner"
+            type="text"
+            placeholder="e.g. CloudOps"
+            value={owner}
+            onChange={(e) => setOwner(e.target.value)}
+            autoComplete="off"
+          />
+        </div>
+
+        <div className="field-group">
+          <label htmlFor="infrastructure-operator">
+            Infrastructure Operator
+            <span className="required">*</span>
+          </label>
+
+          <input
+            id="infrastructure-operator"
+            type="text"
+            placeholder="e.g. gisocc"
+            value={team}
+            onChange={(e) => setTeam(e.target.value)}
+            autoComplete="off"
+          />
+        </div>
+
+      </div>
     </>
   );
 }
