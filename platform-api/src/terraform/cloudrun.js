@@ -41,6 +41,16 @@ variable "application_name" {
   type        = string
 }
 
+variable "application_owner" {
+  description = "Application owner"
+  type        = string
+}
+
+variable "environment" {
+  description = "Deployment environment"
+  type        = string
+}
+
 variable "container_image" {
   description = "Container image"
   type        = string
@@ -51,6 +61,15 @@ variable "container_image" {
 resource "google_cloud_run_v2_service" "app" {
   name     = var.application_name
   location = var.region
+
+  labels = {
+    managed-by               = "CloudOps"
+    application              = var.application_name
+    application-owner        = var.application_owner
+    infrastructure-operator = "gisocc"
+    environment              = var.environment
+    platform                 = "internal-developer-platform"
+  }
 
   deletion_protection = false
 
@@ -77,17 +96,21 @@ output "service_url" {
 `.trim(),
 
     "terraform.tfvars": `
-gcp_project      = "${process.env.GCP_PROJECT_ID}"
-region           = "${application.region}"
-application_name = "${application.applicationName}"
-container_image  = "${process.env.CONTAINER_IMAGE || "us-docker.pkg.dev/cloudrun/container/hello"}"
+gcp_project       = "${process.env.GCP_PROJECT_ID}"
+region            = "${application.region}"
+application_name  = "${application.applicationName}"
+application_owner = "${application.owner}"
+environment       = "${application.environment}"
+container_image   = "${process.env.CONTAINER_IMAGE || "us-docker.pkg.dev/cloudrun/container/hello"}"
 `.trim(),
 
     "terraform.tfvars.example": `
-gcp_project      = "YOUR_GCP_PROJECT_ID"
-region           = "${application.region}"
-application_name = "${application.applicationName}"
-container_image  = "us-docker.pkg.dev/cloudrun/container/hello"
+gcp_project       = "YOUR_GCP_PROJECT_ID"
+region            = "${application.region}"
+application_name  = "${application.applicationName}"
+application_owner = "APPLICATION_OWNER"
+environment       = "${application.environment}"
+container_image   = "us-docker.pkg.dev/cloudrun/container/hello"
 `.trim(),
 
     "README.md": `
