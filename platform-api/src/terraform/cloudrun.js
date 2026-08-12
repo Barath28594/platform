@@ -63,12 +63,12 @@ resource "google_cloud_run_v2_service" "app" {
   location = var.region
 
   labels = {
-    managed-by               = "CloudOps"
-    application              = var.application_name
-    application-owner        = var.application_owner
+    managed-by              = "cloudops"
+    application             = lower(var.application_name)
+    application-owner       = lower(var.application_owner)
     infrastructure-operator = "gisocc"
-    environment              = var.environment
-    platform                 = "internal-developer-platform"
+    environment             = lower(var.environment)
+    platform                = "internal-developer-platform"
   }
 
   deletion_protection = false
