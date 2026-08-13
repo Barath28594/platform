@@ -7,47 +7,59 @@ const {
 } = require("./githubService");
 
 function buildDeploymentPlan(application) {
-  switch (application.service) {
-    case "Cloud Run":
-      return [
-        "Cloud Run",
-        "Artifact Registry",
-        "IAM Service Account",
-        "Secret Manager",
-        "Cloud Logging",
-        "Cloud Monitoring",
-      ];
 
-    case "Compute Engine":
-      return [
-        "VPC",
-        "Firewall Rules",
-        "Compute Engine VM",
-        "Persistent Disk",
-        "Cloud Logging",
-        "Cloud Monitoring",
-      ];
+    switch (application.service) {
 
-    case "GKE":
-      return [
-        "VPC",
-        "GKE Cluster",
-        "Node Pool",
-        "Artifact Registry",
-        "Cloud Monitoring",
-      ];
+        case "Cloud Run":
+            return [
+                "Cloud Run",
+                "Artifact Registry",
+                "IAM Service Account",
+                "Secret Manager",
+                "Cloud Logging",
+                "Cloud Monitoring",
+            ];
 
-    case "AWS Lambda":
-      return [
-        "Lambda",
-        "IAM Role",
-        "CloudWatch",
-        "S3 Bucket",
-      ];
+        case "Compute Engine":
+            return [
+                "VPC",
+                "Firewall Rules",
+                "Compute Engine VM",
+                "Persistent Disk",
+                "Cloud Logging",
+                "Cloud Monitoring",
+            ];
 
-    default:
-      return [application.service];
-  }
+        case "GKE":
+            return [
+                "VPC",
+                "GKE Cluster",
+                "Node Pool",
+                "Artifact Registry",
+                "Cloud Monitoring",
+            ];
+
+        case "EC2":
+            return [
+                "VPC",
+                "Security Group",
+                "EC2 Instance",
+                "EBS Volume",
+                "IAM Role",
+                "CloudWatch",
+            ];
+
+        case "AWS Lambda":
+            return [
+                "Lambda",
+                "IAM Role",
+                "CloudWatch",
+                "S3 Bucket",
+            ];
+
+        default:
+            return [application.service];
+    }
 }
 
 async function provisionApplication(application) {

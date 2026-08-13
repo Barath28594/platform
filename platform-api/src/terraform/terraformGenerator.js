@@ -2,19 +2,55 @@ const {
     generateCloudRunTerraform
 } = require("./cloudrun");
 
+const {
+    generateComputeEngineTerraform
+} = require("./computeengine");
+
+const {
+    generateEC2Terraform
+} = require("./ec2");
+
+
 function generateTerraform(application) {
 
-    switch (application.service) {
+    if (application.cloud === "GCP") {
 
-        case "Cloud Run":
+        switch (application.service) {
 
-            return generateCloudRunTerraform(application);
+            case "Cloud Run":
+                return generateCloudRunTerraform(application);
 
-        default:
+            case "Compute Engine":
+                return generateComputeEngineTerraform(application);
 
-            return generateCloudRunTerraform(application);
+            default:
+                throw new Error(
+                    `Unsupported GCP service: ${application.service}`
+                );
+        }
     }
+
+
+    if (application.cloud === "AWS") {
+
+        switch (application.service) {
+
+            case "EC2":
+                return generateEC2Terraform(application);
+
+            default:
+                throw new Error(
+                    `Unsupported AWS service: ${application.service}`
+                );
+        }
+    }
+
+
+    throw new Error(
+        `Unsupported cloud provider: ${application.cloud}`
+    );
 }
+
 
 module.exports = {
     generateTerraform
