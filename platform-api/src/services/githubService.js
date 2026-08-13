@@ -146,44 +146,77 @@ async function createProductionEnvironment(repoName) {
     );
 }
 
-async function configureRepository(repoName) {
-
+async function configureRepository(repoName, application) {
     console.log(`Configuring GitHub Actions for ${repoName}...`);
 
-    // Repository variables
-    await setRepositoryVariable(
-        repoName,
-        "GCP_PROJECT_ID",
-        process.env.GCP_PROJECT_ID
-    );
+    /*
+     * ---------------------------------------------------------
+     * GCP CONFIGURATION
+     * ---------------------------------------------------------
+     */
 
-    if (process.env.CONTAINER_IMAGE) {
+    if (application.cloud === "GCP") {
+
         await setRepositoryVariable(
             repoName,
-            "CONTAINER_IMAGE",
-            process.env.CONTAINER_IMAGE
+            "GCP_PROJECT_ID",
+            process.env.GCP_PROJECT_ID
+        );
+
+        if (process.env.CONTAINER_IMAGE) {
+            await setRepositoryVariable(
+                repoName,
+                "CONTAINER_IMAGE",
+                process.env.CONTAINER_IMAGE
+            );
+        }
+
+        await setRepositorySecret(
+            repoName,
+            "WIF_PROVIDER",
+            process.env.WIF_PROVIDER
+        );
+
+        await setRepositorySecret(
+            repoName,
+            "WIF_SERVICE_ACCOUNT",
+            process.env.WIF_SERVICE_ACCOUNT
+        );
+
+        await createProductionEnvironment(repoName);
+
+        console.log(
+            `GCP GitHub Actions configuration completed for ${repoName}`
         );
     }
 
-    // Repository secrets
-    await setRepositorySecret(
-        repoName,
-        "WIF_PROVIDER",
-        process.env.WIF_PROVIDER
-    );
 
-    await setRepositorySecret(
-        repoName,
-        "WIF_SERVICE_ACCOUNT",
-        process.env.WIF_SERVICE_ACCOUNT
-    );
+    /*
+     * ---------------------------------------------------------
+     * AWS CONFIGURATION
+     * ---------------------------------------------------------
+     */
 
-    // GitHub Environment + approval
-    await createProductionEnvironment(repoName);
+    if (application.cloud === "AWS") {
 
-    console.log(
-        `GitHub Actions configuration completed for ${repoName}`
-    );
+        await setRepositoryVariable(
+            repoName,
+            "AWS_REGION",
+            application.region
+        );
+
+        await setRepositoryVariable(
+            repoName,
+            "AWS_ROLE_ARN",
+            process.env.AWS_ROLE_ARN
+        );
+
+        await createProductionEnvironment(repoName);
+
+        console.log(
+            `AWS GitHub Actions configuration completed for ${repoName}`
+        );
+    }
 }
 
 module.exports = {
