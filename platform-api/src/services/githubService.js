@@ -4,105 +4,167 @@ const { Octokit } = require("@octokit/rest");
 const sodium = require("libsodium-wrappers");
 
 const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN,
+    auth: process.env.GITHUB_TOKEN,
 });
 
+
+/*
+ * =========================================================
+ * CREATE REPOSITORY
+ * =========================================================
+ */
+
 async function createRepository(application) {
-  const repoName = `${application.applicationName}-infra`
-    .toLowerCase()
-    .replace(/[^a-z0-9-_]/g, "-");
 
-  const response = await octokit.repos.createForAuthenticatedUser({
-    name: repoName,
-    private: false,
-    auto_init: false,
-    description: `Infrastructure repository for ${application.applicationName}`,
-  });
+    const repoName = `${application.applicationName}-infra`
+        .toLowerCase()
+        .replace(/[^a-z0-9-_]/g, "-");
 
-  return {
-    name: response.data.name,
-    htmlUrl: response.data.html_url,
-    defaultBranch: response.data.default_branch,
-  };
+    const response = await octokit.repos.createForAuthenticatedUser({
+        name: repoName,
+        private: false,
+        auto_init: false,
+        description: `Infrastructure repository for ${application.applicationName}`,
+    });
+
+    return {
+        name: response.data.name,
+        htmlUrl: response.data.html_url,
+        defaultBranch: response.data.default_branch,
+    };
 }
+
+
+/*
+ * =========================================================
+ * UPLOAD REPOSITORY FILES
+ * =========================================================
+ */
 
 async function uploadRepositoryFiles(repoName, files) {
-  for (const [path, content] of Object.entries(files)) {
-    await octokit.repos.createOrUpdateFileContents({
-      owner: process.env.GITHUB_OWNER,
-      repo: repoName,
-      path,
-      message: `Add ${path}`,
-      content: Buffer.from(content).toString("base64"),
-    });
-  }
+
+    for (const [filePath, content] of Object.entries(files)) {
+
+        await octokit.repos.createOrUpdateFileContents({
+            owner: process.env.GITHUB_OWNER,
+            repo: repoName,
+            path: filePath,
+            message: `Add ${filePath}`,
+            content: Buffer.from(content).toString("base64"),
+        });
+    }
 }
+
+
+/*
+ * =========================================================
+ * REPOSITORY VARIABLE
+ * =========================================================
+ */
 
 async function setRepositoryVariable(repoName, name, value) {
-  await octokit.request(
-    "POST /repos/{owner}/{repo}/actions/variables",
-    {
-      owner: process.env.GITHUB_OWNER,
-      repo: repoName,
-      name,
-      value,
-      headers: {
-        "X-GitHub-Api-Version": "2022-11-28",
-      },
+
+    if (value === undefined || value === null || value === "") {
+        console.log(
+            `Skipping repository variable ${name} because no value was provided.`
+        );
+
+        return;
     }
-  );
+
+    await octokit.request(
+        "POST /repos/{owner}/{repo}/actions/variables",
+        {
+            owner: process.env.GITHUB_OWNER,
+            repo: repoName,
+            name,
+            value: String(value),
+            headers: {
+                "X-GitHub-Api-Version": "2022-11-28",
+            },
+        }
+    );
+
+    console.log(`Repository variable created: ${name}`);
 }
+
+
+/*
+ * =========================================================
+ * REPOSITORY SECRET
+ * =========================================================
+ */
 
 async function setRepositorySecret(repoName, name, value) {
-  await sodium.ready;
 
-  const publicKeyResponse = await octokit.request(
-    "GET /repos/{owner}/{repo}/actions/secrets/public-key",
-    {
-      owner: process.env.GITHUB_OWNER,
-      repo: repoName,
-      headers: {
-        "X-GitHub-Api-Version": "2022-11-28",
-      },
+    if (value === undefined || value === null || value === "") {
+
+        console.log(
+            `Skipping repository secret ${name} because no value was provided.`
+        );
+
+        return;
     }
-  );
 
-  const publicKey = publicKeyResponse.data.key;
-  const keyId = publicKeyResponse.data.key_id;
+    await sodium.ready;
 
-  const encryptedBytes = sodium.crypto_box_seal(
-    Buffer.from(value),
-    sodium.from_base64(
-      publicKey,
-      sodium.base64_variants.ORIGINAL
-    )
-  );
+    const publicKeyResponse = await octokit.request(
+        "GET /repos/{owner}/{repo}/actions/secrets/public-key",
+        {
+            owner: process.env.GITHUB_OWNER,
+            repo: repoName,
+            headers: {
+                "X-GitHub-Api-Version": "2022-11-28",
+            },
+        }
+    );
 
-  const encryptedValue = sodium.to_base64(
-    encryptedBytes,
-    sodium.base64_variants.ORIGINAL
-  );
+    const publicKey = publicKeyResponse.data.key;
+    const keyId = publicKeyResponse.data.key_id;
 
-  await octokit.request(
-    "PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}",
-    {
-      owner: process.env.GITHUB_OWNER,
-      repo: repoName,
-      secret_name: name,
-      encrypted_value: encryptedValue,
-      key_id: keyId,
-      headers: {
-        "X-GitHub-Api-Version": "2022-11-28",
-      },
-    }
-  );
+    const encryptedBytes = sodium.crypto_box_seal(
+        Buffer.from(String(value)),
+        sodium.from_base64(
+            publicKey,
+            sodium.base64_variants.ORIGINAL
+        )
+    );
+
+    const encryptedValue = sodium.to_base64(
+        encryptedBytes,
+        sodium.base64_variants.ORIGINAL
+    );
+
+    await octokit.request(
+        "PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}",
+        {
+            owner: process.env.GITHUB_OWNER,
+            repo: repoName,
+            secret_name: name,
+            encrypted_value: encryptedValue,
+            key_id: keyId,
+            headers: {
+                "X-GitHub-Api-Version": "2022-11-28",
+            },
+        }
+    );
+
+    console.log(`Repository secret created: ${name}`);
 }
+
+
+/*
+ * =========================================================
+ * PRODUCTION ENVIRONMENT
+ * =========================================================
+ */
 
 async function createProductionEnvironment(repoName) {
 
-    console.log(`Creating production environment for ${repoName}...`);
+    console.log(
+        `Creating production environment for ${repoName}...`
+    );
 
-    // Get the authenticated GitHub user
     const userResponse = await octokit.request(
         "GET /user",
         {
@@ -146,8 +208,19 @@ async function createProductionEnvironment(repoName) {
     );
 }
 
+
+/*
+ * =========================================================
+ * CONFIGURE REPOSITORY
+ * =========================================================
+ */
+
 async function configureRepository(repoName, application) {
-    console.log(`Configuring GitHub Actions for ${repoName}...`);
+
+    console.log(
+        `Configuring GitHub Actions for ${repoName}...`
+    );
+
 
     /*
      * ---------------------------------------------------------
@@ -164,6 +237,7 @@ async function configureRepository(repoName, application) {
         );
 
         if (process.env.CONTAINER_IMAGE) {
+
             await setRepositoryVariable(
                 repoName,
                 "CONTAINER_IMAGE",
@@ -182,12 +256,6 @@ async function configureRepository(repoName, application) {
             "WIF_SERVICE_ACCOUNT",
             process.env.WIF_SERVICE_ACCOUNT
         );
-
-        await createProductionEnvironment(repoName);
-
-        console.log(
-            `GCP GitHub Actions configuration completed for ${repoName}`
-        );
     }
 
 
@@ -199,25 +267,54 @@ async function configureRepository(repoName, application) {
 
     if (application.cloud === "AWS") {
 
-        await setRepositoryVariable(
-            repoName,
-            "AWS_REGION",
-            application.region
-        );
+        const awsRoleArn =
+            process.env.AWS_ROLE_ARN ||
+            "arn:aws:iam::954935267694:role/VelocityGitHubActionsRole";
+
+        const awsRegion =
+            application.region ||
+            process.env.AWS_REGION ||
+            "ap-south-1";
 
         await setRepositoryVariable(
             repoName,
             "AWS_ROLE_ARN",
-            process.env.AWS_ROLE_ARN
+            awsRoleArn
         );
 
-        await createProductionEnvironment(repoName);
+        await setRepositoryVariable(
+            repoName,
+            "AWS_REGION",
+            awsRegion
+        );
 
         console.log(
-            `AWS GitHub Actions configuration completed for ${repoName}`
+            `AWS OIDC configured for ${repoName}`
+        );
+
+        console.log(
+            `AWS Role: ${awsRoleArn}`
+        );
+
+        console.log(
+            `AWS Region: ${awsRegion}`
         );
     }
+
+
+    /*
+     * ---------------------------------------------------------
+     * GITHUB ENVIRONMENT
+     * ---------------------------------------------------------
+     */
+
+    await createProductionEnvironment(repoName);
+
+    console.log(
+        `GitHub Actions configuration completed for ${repoName}`
+    );
 }
+
 
 module.exports = {
     createRepository,

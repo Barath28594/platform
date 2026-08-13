@@ -1,16 +1,36 @@
-const { generateTerraform } = require("../terraform/terraformGenerator");
-const { generateRepository } = require("./repositoryGenerator");
 const {
-  createRepository,
-  uploadRepositoryFiles,
-  configureRepository,
+    generateTerraform
+} = require("../terraform/terraformGenerator");
+
+const {
+    generateRepository
+} = require("./repositoryGenerator");
+
+const {
+    createRepository,
+    uploadRepositoryFiles,
+    configureRepository,
 } = require("./githubService");
+
+
+/*
+ * =========================================================
+ * DEPLOYMENT PLAN
+ * =========================================================
+ */
 
 function buildDeploymentPlan(application) {
 
     switch (application.service) {
 
+        /*
+         * -----------------------------------------------------
+         * GCP CLOUD RUN
+         * -----------------------------------------------------
+         */
+
         case "Cloud Run":
+
             return [
                 "Cloud Run",
                 "Artifact Registry",
@@ -20,7 +40,15 @@ function buildDeploymentPlan(application) {
                 "Cloud Monitoring",
             ];
 
+
+        /*
+         * -----------------------------------------------------
+         * GCP COMPUTE ENGINE
+         * -----------------------------------------------------
+         */
+
         case "Compute Engine":
+
             return [
                 "VPC",
                 "Firewall Rules",
@@ -30,7 +58,15 @@ function buildDeploymentPlan(application) {
                 "Cloud Monitoring",
             ];
 
+
+        /*
+         * -----------------------------------------------------
+         * GCP GKE
+         * -----------------------------------------------------
+         */
+
         case "GKE":
+
             return [
                 "VPC",
                 "GKE Cluster",
@@ -39,17 +75,33 @@ function buildDeploymentPlan(application) {
                 "Cloud Monitoring",
             ];
 
+
+        /*
+         * -----------------------------------------------------
+         * AWS EC2
+         * -----------------------------------------------------
+         */
+
         case "EC2":
+
             return [
-                "VPC",
+                "Default VPC",
                 "Security Group",
                 "EC2 Instance",
-                "EBS Volume",
-                "IAM Role",
-                "CloudWatch",
+                "Amazon Linux 2023",
+                "EBS Root Volume",
+                "EC2 Instance Tags",
             ];
 
+
+        /*
+         * -----------------------------------------------------
+         * AWS LAMBDA
+         * -----------------------------------------------------
+         */
+
         case "AWS Lambda":
+
             return [
                 "Lambda",
                 "IAM Role",
@@ -57,51 +109,125 @@ function buildDeploymentPlan(application) {
                 "S3 Bucket",
             ];
 
+
         default:
-            return [application.service];
+
+            return [
+                application.service
+            ];
     }
 }
 
+
+/*
+ * =========================================================
+ * PROVISION APPLICATION
+ * =========================================================
+ */
+
 async function provisionApplication(application) {
-  const blueprint = {
-    service: application.service,
-    monitoring: true,
-    logging: true,
-    secrets: true,
-    backup: false,
-  };
 
-  const terraform = generateTerraform(application);
+    /*
+     * Platform blueprint metadata
+     */
 
-const repositoryFiles = generateRepository(
-  application,
-  terraform
-);
+    const blueprint = {
 
-const repository = await createRepository(application);
+        service: application.service,
 
-await configureRepository(repository.name);
+        monitoring: true,
 
-await uploadRepositoryFiles(
-  repository.name,
-  repositoryFiles
-);
+        logging: true,
 
-  return {
-    requestId: "REQ-" + Math.floor(Math.random() * 9000 + 1000),
+        secrets: true,
 
-    status: "Accepted",
+        backup: false,
+    };
 
-    blueprint,
 
-    deploymentPlan: buildDeploymentPlan(application),
+    /*
+     * Generate Terraform
+     */
 
-    repository,
+    const terraform =
+        generateTerraform(application);
 
-    terraform,
-  };
+
+    /*
+     * Generate complete repository
+     */
+
+    const repositoryFiles =
+        generateRepository(
+            application,
+            terraform
+        );
+
+
+    /*
+     * Create GitHub repository
+     */
+
+    const repository =
+        await createRepository(
+            application
+        );
+
+
+    /*
+     * Configure cloud-specific
+     * GitHub Actions authentication
+     */
+
+    await configureRepository(
+        repository.name,
+        application
+    );
+
+
+    /*
+     * Upload generated infrastructure
+     */
+
+    await uploadRepositoryFiles(
+        repository.name,
+        repositoryFiles
+    );
+
+
+    /*
+     * Generate request ID
+     */
+
+    const requestId =
+        "REQ-" +
+        Date.now().toString(36).toUpperCase();
+
+
+    /*
+     * Return provisioning result
+     */
+
+    return {
+
+        requestId,
+
+        status: "Accepted",
+
+        blueprint,
+
+        deploymentPlan:
+            buildDeploymentPlan(
+                application
+            ),
+
+        repository,
+
+        terraform,
+    };
 }
 
+
 module.exports = {
-  provisionApplication,
+    provisionApplication,
 };

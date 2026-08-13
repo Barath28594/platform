@@ -13,9 +13,23 @@
     "region": "asia-south1"
   },
 
+  "GCP VM": {
+    "cloud": "GCP",
+    "service": "Compute Engine",
+    "environment": "dev",
+    "region": "asia-south1"
+  },
+
   "Worker": {
     "cloud": "AWS",
     "service": "Lambda",
+    "environment": "dev",
+    "region": "ap-south-1"
+  },
+
+  "AWS EC2 Application": {
+    "cloud": "AWS",
+    "service": "EC2",
     "environment": "dev",
     "region": "ap-south-1"
   },

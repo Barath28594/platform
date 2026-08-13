@@ -1,10 +1,37 @@
-function generateEC2Terraform(application) {
-    return {
-        "provider.tf": `
-provider "aws" {
-  region = var.region
+function hclString(value) {
+    return JSON.stringify(
+        value === undefined || value === null
+            ? ""
+            : String(value)
+    );
 }
-`.trim(),
+
+
+function generateEC2Terraform(application) {
+
+    const applicationName =
+        application.applicationName || "velocity-application";
+
+    const owner =
+        application.owner || "unknown";
+
+    const team =
+        application.team || "unknown";
+
+    const environment =
+        application.environment || "dev";
+
+    const region =
+        application.region || "ap-south-1";
+
+
+    return {
+
+        /*
+         * =====================================================
+         * versions.tf
+         * =====================================================
+         */
 
         "versions.tf": `
 terraform {
@@ -16,39 +43,58 @@ terraform {
       version = "~> 6.0"
     }
   }
-
-  backend "s3" {
-    bucket = "velocity-terraform-state"
-    key    = "applications/${application.applicationName}/terraform.tfstate"
-    region = "ap-south-1"
-  }
 }
 `.trim(),
 
+
+        /*
+         * =====================================================
+         * provider.tf
+         * =====================================================
+         */
+
+        "provider.tf": `
+provider "aws" {
+  region = var.aws_region
+}
+`.trim(),
+
+
+        /*
+         * =====================================================
+         * variables.tf
+         * =====================================================
+         */
+
         "variables.tf": `
-variable "region" {
-  description = "AWS region"
+variable "aws_region" {
+  description = "AWS region where the application will be deployed"
   type        = string
+  default     = ${hclString(region)}
 }
 
 variable "application_name" {
   description = "Application name"
   type        = string
+  default     = ${hclString(applicationName)}
 }
 
 variable "application_owner" {
   description = "Application owner"
   type        = string
+  default     = ${hclString(owner)}
+}
+
+variable "team" {
+  description = "Application team"
+  type        = string
+  default     = ${hclString(team)}
 }
 
 variable "environment" {
-  description = "Deployment environment"
+  description = "Application environment"
   type        = string
-}
-
-variable "ami_id" {
-  description = "EC2 AMI ID"
-  type        = string
+  default     = ${hclString(environment)}
 }
 
 variable "instance_type" {
@@ -56,105 +102,151 @@ variable "instance_type" {
   type        = string
   default     = "t3.micro"
 }
+
+variable "ssh_cidr" {
+  description = "CIDR allowed to access SSH. Empty disables SSH ingress."
+  type        = string
+  default     = ""
+}
 `.trim(),
 
+
+        /*
+         * =====================================================
+         * data.tf
+         * =====================================================
+         */
+
+        "data.tf": `
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
+
+data "aws_ssm_parameter" "amazon_linux" {
+  name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
+}
+`.trim(),
+
+
+        /*
+         * =====================================================
+         * main.tf
+         * =====================================================
+         */
+
         "main.tf": `
-resource "aws_instance" "app" {
-  ami           = var.ami_id
-  instance_type = var.instance_type
+resource "aws_security_group" "velocity_ec2" {
+
+  name = "\${var.application_name}-sg"
+
+  description = "Security group for Velocity provisioned EC2 instance"
+
+  vpc_id = data.aws_vpc.default.id
+
+  dynamic "ingress" {
+
+    for_each = var.ssh_cidr == "" ? [] : [var.ssh_cidr]
+
+    content {
+      description = "SSH"
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = [ingress.value]
+    }
+  }
+
+  egress {
+    description = "Allow outbound traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   tags = {
-    Name                     = var.application_name
-    Managed-By               = "CloudOps"
-    Application              = var.application_name
-    Application-Owner        = var.application_owner
-    Infrastructure-Operator  = "gisocc"
-    Environment              = var.environment
-    Platform                 = "internal-developer-platform"
+    Name        = "\${var.application_name}-sg"
+    ManagedBy   = "Velocity"
+    Application = var.application_name
+    Environment = var.environment
+  }
+}
+
+
+resource "aws_instance" "application" {
+
+  ami = data.aws_ssm_parameter.amazon_linux.value
+
+  instance_type = var.instance_type
+
+  subnet_id = data.aws_subnets.default.ids[0]
+
+  vpc_security_group_ids = [
+    aws_security_group.velocity_ec2.id
+  ]
+
+  associate_public_ip_address = true
+
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
+
+  tags = {
+    Name        = var.application_name
+    ManagedBy   = "Velocity"
+    Application = var.application_name
+    Owner       = var.application_owner
+    Team        = var.team
+    Environment = var.environment
+    Service     = "EC2"
   }
 }
 `.trim(),
 
+
+        /*
+         * =====================================================
+         * outputs.tf
+         * =====================================================
+         */
+
         "outputs.tf": `
 output "instance_id" {
-  value = aws_instance.app.id
+  description = "EC2 instance ID"
+  value       = aws_instance.application.id
 }
 
 output "instance_public_ip" {
-  value = aws_instance.app.public_ip
+  description = "EC2 public IP"
+  value       = aws_instance.application.public_ip
 }
 
 output "instance_private_ip" {
-  value = aws_instance.app.private_ip
+  description = "EC2 private IP"
+  value       = aws_instance.application.private_ip
 }
 
-output "instance_public_dns" {
-  value = aws_instance.app.public_dns
+output "instance_type" {
+  description = "EC2 instance type"
+  value       = aws_instance.application.instance_type
 }
-`.trim(),
 
-        "terraform.tfvars": `
-region            = "${application.region}"
-application_name  = "${application.applicationName}"
-application_owner = "${application.owner}"
-environment       = "${application.environment}"
-
-# Replace with an AMI valid for the selected AWS region.
-ami_id = "ami-xxxxxxxxxxxxxxxxx"
-
-instance_type = "t3.micro"
-`.trim(),
-
-        "terraform.tfvars.example": `
-region            = "${application.region}"
-application_name  = "${application.applicationName}"
-application_owner = "${application.owner}"
-environment       = "${application.environment}"
-
-ami_id        = "ami-xxxxxxxxxxxxxxxxx"
-instance_type = "t3.micro"
-`.trim(),
-
-        "README.md": `
-# ${application.applicationName}
-
-Generated by Velocity Platform.
-
-## Application
-
-${application.applicationName}
-
-## Owner
-
-${application.owner}
-
-## Team
-
-${application.team}
-
-## Cloud
-
-AWS
-
-## Region
-
-${application.region}
-
-## Environment
-
-${application.environment}
-
-## Service
-
-EC2
-
-Infrastructure generated automatically by Velocity.
-
-> Before applying, replace the AMI ID in terraform.tfvars with an AMI
-> available in the selected AWS region.
+output "security_group_id" {
+  description = "Security group ID"
+  value       = aws_security_group.velocity_ec2.id
+}
 `.trim()
     };
 }
+
 
 module.exports = {
     generateEC2Terraform

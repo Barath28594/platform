@@ -1,6 +1,14 @@
 function generatePipeline(application) {
-  if (application.cloud === "GCP") {
-    return `
+
+    /*
+     * =========================================================
+     * GCP PIPELINE
+     * =========================================================
+     */
+
+    if (application.cloud === "GCP") {
+
+        return `
 name: Velocity Terraform Pipeline
 
 on:
@@ -13,10 +21,13 @@ permissions:
   id-token: write
 
 jobs:
+
   plan:
     name: Terraform Validation and Plan
     runs-on: ubuntu-latest
+
     steps:
+
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -59,9 +70,12 @@ jobs:
     name: Terraform Apply
     needs: plan
     runs-on: ubuntu-latest
+
     environment:
       name: production
+
     steps:
+
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -93,9 +107,18 @@ jobs:
           TF_VAR_environment: "${application.environment}"
           TF_VAR_container_image: \${{ vars.CONTAINER_IMAGE }}
 `.trim();
-  }
+    }
 
-  return `
+
+    /*
+     * =========================================================
+     * AWS PIPELINE
+     * =========================================================
+     */
+
+    if (application.cloud === "AWS") {
+
+        return `
 name: Velocity Terraform Pipeline
 
 on:
@@ -108,12 +131,25 @@ permissions:
   id-token: write
 
 jobs:
+
   plan:
     name: Terraform Validation and Plan
     runs-on: ubuntu-latest
+
     steps:
+
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: \${{ vars.AWS_ROLE_ARN }}
+          aws-region: \${{ vars.AWS_REGION }}
+          role-session-name: VelocityTerraformPlan
+
+      - name: Verify AWS Identity
+        run: aws sts get-caller-identity
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -130,8 +166,11 @@ jobs:
       - name: Terraform Plan
         run: terraform plan -out=tfplan
         env:
-          TF_VAR_region: "${application.region}"
+          TF_VAR_aws_region: \${{ vars.AWS_REGION }}
           TF_VAR_application_name: "${application.applicationName}"
+          TF_VAR_application_owner: "${application.owner}"
+          TF_VAR_team: "${application.team}"
+          TF_VAR_environment: "${application.environment}"
 
       - name: Upload Terraform Plan
         uses: actions/upload-artifact@v4
@@ -143,11 +182,24 @@ jobs:
     name: Terraform Apply
     needs: plan
     runs-on: ubuntu-latest
+
     environment:
       name: production
+
     steps:
+
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: \${{ vars.AWS_ROLE_ARN }}
+          aws-region: \${{ vars.AWS_REGION }}
+          role-session-name: VelocityTerraformApply
+
+      - name: Verify AWS Identity
+        run: aws sts get-caller-identity
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -163,11 +215,27 @@ jobs:
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
         env:
-          TF_VAR_region: "${application.region}"
+          TF_VAR_aws_region: \${{ vars.AWS_REGION }}
           TF_VAR_application_name: "${application.applicationName}"
+          TF_VAR_application_owner: "${application.owner}"
+          TF_VAR_team: "${application.team}"
+          TF_VAR_environment: "${application.environment}"
 `.trim();
+    }
+
+
+    /*
+     * =========================================================
+     * UNSUPPORTED CLOUD
+     * =========================================================
+     */
+
+    throw new Error(
+        `Unsupported cloud provider for pipeline: ${application.cloud}`
+    );
 }
 
+
 module.exports = {
-  generatePipeline
+    generatePipeline
 };
