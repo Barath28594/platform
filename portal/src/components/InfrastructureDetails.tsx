@@ -1,11 +1,9 @@
 type Props = {
   catalog: any;
-
   cloud: string;
   region: string;
   environment: string;
   service: string;
-
   setCloud: (value: string) => void;
   setRegion: (value: string) => void;
   setEnvironment: (value: string) => void;
@@ -18,131 +16,85 @@ export default function InfrastructureDetails({
   region,
   environment,
   service,
-
   setCloud,
   setRegion,
   setEnvironment,
-  setService
+  setService,
 }: Props) {
-  function handleCloudChange(
-    selectedCloud: string
-  ) {
-    setCloud(selectedCloud);
-
-    setRegion(
-      catalog.regions[selectedCloud][0]
-    );
-
-    setService(
-      catalog.services[selectedCloud][0]
-    );
-  }
-
   return (
-    <>
-      <div className="field">
-        <label>
-          Cloud Provider
-          <span className="required">*</span>
-        </label>
+    <section className="provision-section">
+      <div className="section-heading">
+        <div className="section-icon">◇</div>
+        <div>
+          <h3 className="section-title">Infrastructure</h3>
+          <p className="section-description">
+            Choose where and how your application will run.
+          </p>
+        </div>
+      </div>
 
-        <select
-          value={cloud}
-          onChange={(e) =>
-            handleCloudChange(e.target.value)
-          }
-          required
-        >
-          {catalog?.clouds?.map(
-            (cloudName: string) => (
-              <option
-                key={cloudName}
-                value={cloudName}
-              >
+      <div className="infrastructure-fields">
+        <div className="form-field">
+          <label className="field-label">Cloud Provider *</label>
+          <select
+            value={cloud}
+            onChange={(e) => {
+              const selectedCloud = e.target.value;
+              setCloud(selectedCloud);
+              setRegion(catalog.regions[selectedCloud][0]);
+              setService(catalog.services[selectedCloud][0]);
+            }}
+          >
+            {catalog?.clouds.map((cloudName: string) => (
+              <option key={cloudName} value={cloudName}>
                 {cloudName}
               </option>
-            )
-          )}
-        </select>
-      </div>
+            ))}
+          </select>
+        </div>
 
-      <div className="field">
-        <label>
-          Region
-          <span className="required">*</span>
-        </label>
-
-        <select
-          value={region}
-          onChange={(e) =>
-            setRegion(e.target.value)
-          }
-          required
-        >
-          {catalog?.regions?.[cloud]?.map(
-            (regionName: string) => (
-              <option
-                key={regionName}
-                value={regionName}
-              >
+        <div className="form-field">
+          <label className="field-label">Region *</label>
+          <select
+            value={region}
+            onChange={(e) => setRegion(e.target.value)}
+          >
+            {catalog?.regions[cloud]?.map((regionName: string) => (
+              <option key={regionName} value={regionName}>
                 {regionName}
               </option>
-            )
-          )}
-        </select>
-      </div>
+            ))}
+          </select>
+        </div>
 
-      <div className="field">
-        <label>
-          Environment
-          <span className="required">*</span>
-        </label>
-
-        <select
-          value={environment}
-          onChange={(e) =>
-            setEnvironment(e.target.value)
-          }
-          required
-        >
-          {catalog?.environments?.map(
-            (env: string) => (
-              <option
-                key={env}
-                value={env}
-              >
+        <div className="form-field">
+          <label className="field-label">Environment *</label>
+          <select
+            value={environment}
+            onChange={(e) => setEnvironment(e.target.value)}
+          >
+            {catalog?.environments.map((env: string) => (
+              <option key={env} value={env}>
                 {env}
               </option>
-            )
-          )}
-        </select>
-      </div>
+            ))}
+          </select>
+        </div>
 
-      <div className="field">
-        <label>
-          Service
-          <span className="required">*</span>
-        </label>
-
-        <select
-          value={service}
-          onChange={(e) =>
-            setService(e.target.value)
-          }
-          required
-        >
-          {catalog?.services?.[cloud]?.map(
-            (serviceName: string) => (
-              <option
-                key={serviceName}
-                value={serviceName}
-              >
+        <div className="form-field">
+          <label className="field-label">Service *</label>
+          <select
+            value={service}
+            onChange={(e) => setService(e.target.value)}
+          >
+            {catalog?.services[cloud]?.map((serviceName: string) => (
+              <option key={serviceName} value={serviceName}>
                 {serviceName}
               </option>
-            )
-          )}
-        </select>
+            ))}
+          </select>
+        </div>
       </div>
-    </>
+    </section>
   );
 }

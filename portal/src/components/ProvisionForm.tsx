@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import {
   createApplication,
   getCatalog,
-  getBlueprints
+  getBlueprints,
 } from "../services/api";
 
 import ApplicationDetails from "./ApplicationDetails";
@@ -27,9 +27,7 @@ export default function ProvisionForm() {
   const [service, setService] = useState("");
 
   const [requestId, setRequestId] = useState("");
-
   const [deploymentPlan, setDeploymentPlan] = useState<string[]>([]);
-
   const [terraform, setTerraform] = useState<any>({});
 
   useEffect(() => {
@@ -43,7 +41,6 @@ export default function ProvisionForm() {
       const firstBlueprint = Object.keys(blueprintData)[0];
 
       setSelectedBlueprint(firstBlueprint);
-
       setCloud(blueprintData[firstBlueprint].cloud);
       setRegion(blueprintData[firstBlueprint].region);
       setEnvironment(blueprintData[firstBlueprint].environment);
@@ -54,9 +51,7 @@ export default function ProvisionForm() {
   }, []);
 
   useEffect(() => {
-    if (!blueprints || !selectedBlueprint) {
-      return;
-    }
+    if (!blueprints || !selectedBlueprint) return;
 
     const blueprint = blueprints[selectedBlueprint];
 
@@ -64,7 +59,7 @@ export default function ProvisionForm() {
     setRegion(blueprint.region);
     setEnvironment(blueprint.environment);
     setService(blueprint.service);
-  }, [selectedBlueprint, blueprints]);
+  }, [blueprints, selectedBlueprint]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -77,7 +72,7 @@ export default function ProvisionForm() {
       cloud,
       region,
       environment,
-      service
+      service,
     });
 
     setRequestId(response.requestId);
@@ -86,124 +81,69 @@ export default function ProvisionForm() {
   }
 
   if (!catalog || !blueprints) {
-    return (
-      <div className="loading-state">
-        Loading platform configuration...
-      </div>
-    );
+    return <h3>Loading...</h3>;
   }
 
   return (
     <form onSubmit={handleSubmit}>
-
-      <h2>Provision Application</h2>
-
-      {/* =================================================
-          BLUEPRINT
-          ================================================= */}
-
-      <section className="form-section">
-
-        <div className="section-header">
-          <div>
-            <h3>Blueprint</h3>
-            <p>
-              Start with a predefined platform blueprint.
-            </p>
-          </div>
+      <div className="provision-head">
+        <div>
+          <div className="provision-eyebrow">Platform Request</div>
+          <h2 className="provision-title">Provision Application</h2>
+          <p className="provision-description">
+            Define your application and infrastructure requirements. Velocity
+            will generate and provision the required cloud resources.
+          </p>
         </div>
 
-        <BlueprintSelector
-          blueprints={blueprints}
-          selectedBlueprint={selectedBlueprint}
-          setSelectedBlueprint={setSelectedBlueprint}
-        />
-
-      </section>
-
-      {/* =================================================
-          APPLICATION + INFRASTRUCTURE
-          ================================================= */}
-
-      <section className="form-section">
-
-        <div className="section-header">
-          <div>
-            <h3>Application Configuration</h3>
-            <p>
-              Define ownership and infrastructure requirements.
-            </p>
-          </div>
-        </div>
-
-        <div className="details-grid">
-
-          <div className="details-column">
-
-            <h4 className="details-column-title">
-              Application Details
-            </h4>
-
-            <ApplicationDetails
-              applicationName={applicationName}
-              owner={owner}
-              team={team}
-              setApplicationName={setApplicationName}
-              setOwner={setOwner}
-              setTeam={setTeam}
-            />
-
-          </div>
-
-          <div className="details-column">
-
-            <h4 className="details-column-title">
-              Infrastructure
-            </h4>
-
-            <InfrastructureDetails
-              catalog={catalog}
-              cloud={cloud}
-              region={region}
-              environment={environment}
-              service={service}
-              setCloud={setCloud}
-              setRegion={setRegion}
-              setEnvironment={setEnvironment}
-              setService={setService}
-            />
-
-          </div>
-
-        </div>
-
-      </section>
-
-      {/* =================================================
-          ACTION
-          ================================================= */}
-
-      <div className="provision-action">
-
-        <button
-          type="submit"
-          className="provision-button"
-        >
-          Provision Application
-        </button>
-
+        <div className="ready-pill">● Ready to provision</div>
       </div>
 
-      {/* =================================================
-          RESULT
-          ================================================= */}
+      <BlueprintSelector
+        blueprints={blueprints}
+        selectedBlueprint={selectedBlueprint}
+        setSelectedBlueprint={setSelectedBlueprint}
+      />
+
+      <div className="provision-grid">
+        <ApplicationDetails
+          applicationName={applicationName}
+          owner={owner}
+          team={team}
+          setApplicationName={setApplicationName}
+          setOwner={setOwner}
+          setTeam={setTeam}
+        />
+
+        <InfrastructureDetails
+          catalog={catalog}
+          cloud={cloud}
+          region={region}
+          environment={environment}
+          service={service}
+          setCloud={setCloud}
+          setRegion={setRegion}
+          setEnvironment={setEnvironment}
+          setService={setService}
+        />
+      </div>
+
+      <div className="provision-footer">
+        <div className="review-copy">
+          <p className="review-title">✓ Ready to provision?</p>
+          <p className="review-description">
+            Review your configuration and submit the request.
+          </p>
+        </div>
+
+        <button type="submit">🚀 Provision Application</button>
+      </div>
 
       <SuccessCard
         requestId={requestId}
         deploymentPlan={deploymentPlan}
         terraform={terraform}
       />
-
     </form>
   );
 }

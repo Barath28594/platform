@@ -1,8 +1,12 @@
 export default function Sidebar() {
   return (
     <aside className="sidebar">
+
+      {/* BRAND */}
       <div className="brand">
-        <div className="brand-mark">V</div>
+        <div className="brand-mark">
+          V
+        </div>
 
         <div>
           <h1>VELOCITY</h1>
@@ -10,28 +14,30 @@ export default function Sidebar() {
         </div>
       </div>
 
+      {/* NAVIGATION */}
       <nav className="sidebar-nav">
+
         <div className="nav-section">
           <span>PLATFORM</span>
 
           <div className="menu-item active">
             <span className="nav-icon">⌂</span>
-            Dashboard
+            <span>Dashboard</span>
           </div>
 
           <div className="menu-item">
             <span className="nav-icon">＋</span>
-            Provision
+            <span>Provision</span>
           </div>
 
           <div className="menu-item">
-            <span className="nav-icon">◈</span>
-            Service Catalog
+            <span className="nav-icon">◇</span>
+            <span>Service Catalog</span>
           </div>
 
           <div className="menu-item">
             <span className="nav-icon">◷</span>
-            Requests
+            <span>Requests</span>
           </div>
         </div>
 
@@ -40,25 +46,35 @@ export default function Sidebar() {
 
           <div className="menu-item">
             <span className="nav-icon">⌁</span>
-            Analytics
+            <span>Analytics</span>
           </div>
+        </div>
+
+        <div className="nav-section">
+          <span>SETTINGS</span>
 
           <div className="menu-item">
             <span className="nav-icon">⚙</span>
-            Settings
+            <span>Settings</span>
           </div>
         </div>
+
       </nav>
 
+      {/* PLATFORM STATUS */}
       <div className="sidebar-footer">
         <div className="platform-status">
-          <span className="status-dot" />
+
+          <span className="status-dot"></span>
+
           <div>
             <strong>Platform Online</strong>
             <small>All systems operational</small>
           </div>
+
         </div>
       </div>
+
     </aside>
   );
 }
