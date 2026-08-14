@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import {
   createApplication,
   getCatalog,
-  getBlueprints,
+  getBlueprints
 } from "../services/api";
 
 import ApplicationDetails from "./ApplicationDetails";
@@ -32,30 +32,22 @@ export default function ProvisionForm() {
 
   const [terraform, setTerraform] = useState<any>({});
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   useEffect(() => {
     async function loadData() {
-      try {
-        const catalogData = await getCatalog();
-        const blueprintData = await getBlueprints();
+      const catalogData = await getCatalog();
+      const blueprintData = await getBlueprints();
 
-        setCatalog(catalogData);
-        setBlueprints(blueprintData);
+      setCatalog(catalogData);
+      setBlueprints(blueprintData);
 
-        const firstBlueprint = Object.keys(blueprintData)[0];
+      const firstBlueprint = Object.keys(blueprintData)[0];
 
-        if (firstBlueprint) {
-          setSelectedBlueprint(firstBlueprint);
+      setSelectedBlueprint(firstBlueprint);
 
-          setCloud(blueprintData[firstBlueprint].cloud);
-          setRegion(blueprintData[firstBlueprint].region);
-          setEnvironment(blueprintData[firstBlueprint].environment);
-          setService(blueprintData[firstBlueprint].service);
-        }
-      } catch (error) {
-        console.error("Failed to load platform catalog:", error);
-      }
+      setCloud(blueprintData[firstBlueprint].cloud);
+      setRegion(blueprintData[firstBlueprint].region);
+      setEnvironment(blueprintData[firstBlueprint].environment);
+      setService(blueprintData[firstBlueprint].service);
     }
 
     loadData();
@@ -68,218 +60,150 @@ export default function ProvisionForm() {
 
     const blueprint = blueprints[selectedBlueprint];
 
-    if (!blueprint) {
-      return;
-    }
-
     setCloud(blueprint.cloud);
     setRegion(blueprint.region);
     setEnvironment(blueprint.environment);
     setService(blueprint.service);
   }, [selectedBlueprint, blueprints]);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!applicationName.trim()) {
-      alert("Application name is required.");
-      return;
-    }
+    const response = await createApplication({
+      blueprint: selectedBlueprint,
+      applicationName,
+      owner,
+      team,
+      cloud,
+      region,
+      environment,
+      service
+    });
 
-    if (!owner.trim()) {
-      alert("Application owner is required.");
-      return;
-    }
-
-    if (!team.trim()) {
-      alert("Infrastructure operator is required.");
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-
-      const response = await createApplication({
-        blueprint: selectedBlueprint,
-        applicationName,
-        owner,
-        team,
-        cloud,
-        region,
-        environment,
-        service,
-      });
-
-      setRequestId(response.requestId);
-      setDeploymentPlan(response.deploymentPlan || []);
-      setTerraform(response.terraform || {});
-    } catch (error) {
-      console.error("Provision request failed:", error);
-      alert("Provision request failed. Please check the Platform API.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    setRequestId(response.requestId);
+    setDeploymentPlan(response.deploymentPlan);
+    setTerraform(response.terraform);
   }
 
   if (!catalog || !blueprints) {
     return (
       <div className="loading-state">
-        <div className="loading-spinner"></div>
-
-        <div>
-          <strong>Loading platform catalog</strong>
-          <span>Preparing available blueprints and infrastructure options...</span>
-        </div>
+        Loading platform configuration...
       </div>
     );
   }
 
   return (
-    <form className="provision-form" onSubmit={handleSubmit}>
-      {/* =====================================================
-          REQUEST HEADER
-      ====================================================== */}
+    <form onSubmit={handleSubmit}>
 
-      <div className="provision-header">
-        <div className="provision-header-content">
-          <div className="section-eyebrow">PLATFORM REQUEST</div>
+      <h2>Provision Application</h2>
 
-          <h2>Provision Application</h2>
-
-          <p>
-            Define your application and infrastructure requirements.
-            Velocity will generate and provision the required cloud resources.
-          </p>
-        </div>
-
-        <div className="request-status">
-          <span className="status-dot"></span>
-          <span>Ready to provision</span>
-        </div>
-      </div>
-
-      {/* =====================================================
+      {/* =================================================
           BLUEPRINT
-      ====================================================== */}
+          ================================================= */}
 
-      <section className="form-section blueprint-section">
-        <div className="section-heading">
-          <div className="section-icon">✦</div>
+      <section className="form-section">
 
-          <div className="section-heading-content">
+        <div className="section-header">
+          <div>
             <h3>Blueprint</h3>
-
             <p>
               Start with a predefined platform blueprint.
             </p>
           </div>
         </div>
 
-        <div className="field-group blueprint-field">
-          <label htmlFor="blueprint">
-            Blueprint
-          </label>
+        <BlueprintSelector
+          blueprints={blueprints}
+          selectedBlueprint={selectedBlueprint}
+          setSelectedBlueprint={setSelectedBlueprint}
+        />
 
-          <BlueprintSelector
-            blueprints={blueprints}
-            selectedBlueprint={selectedBlueprint}
-            setSelectedBlueprint={setSelectedBlueprint}
-          />
-        </div>
       </section>
 
-      {/* =====================================================
-          DIVIDER
-      ====================================================== */}
+      {/* =================================================
+          APPLICATION + INFRASTRUCTURE
+          ================================================= */}
 
-      <div className="form-divider"></div>
+      <section className="form-section">
 
-      {/* =====================================================
-          DETAILS GRID
-      ====================================================== */}
-
-      <div className="details-grid">
-
-        {/* APPLICATION */}
-
-        <section className="form-section detail-section">
-          <ApplicationDetails
-            applicationName={applicationName}
-            owner={owner}
-            team={team}
-            setApplicationName={setApplicationName}
-            setOwner={setOwner}
-            setTeam={setTeam}
-          />
-        </section>
-
-        {/* INFRASTRUCTURE */}
-
-        <section className="form-section detail-section">
-          <InfrastructureDetails
-            catalog={catalog}
-            cloud={cloud}
-            region={region}
-            environment={environment}
-            service={service}
-            setCloud={setCloud}
-            setRegion={setRegion}
-            setEnvironment={setEnvironment}
-            setService={setService}
-          />
-        </section>
-
-      </div>
-
-      {/* =====================================================
-          ACTION BAR
-      ====================================================== */}
-
-      <div className="provision-action">
-        <div className="provision-action-copy">
-          <div className="action-icon">✓</div>
-
+        <div className="section-header">
           <div>
-            <strong>Ready to provision?</strong>
-
-            <span>
-              Review your configuration and submit the request.
-            </span>
+            <h3>Application Configuration</h3>
+            <p>
+              Define ownership and infrastructure requirements.
+            </p>
           </div>
         </div>
+
+        <div className="details-grid">
+
+          <div className="details-column">
+
+            <h4 className="details-column-title">
+              Application Details
+            </h4>
+
+            <ApplicationDetails
+              applicationName={applicationName}
+              owner={owner}
+              team={team}
+              setApplicationName={setApplicationName}
+              setOwner={setOwner}
+              setTeam={setTeam}
+            />
+
+          </div>
+
+          <div className="details-column">
+
+            <h4 className="details-column-title">
+              Infrastructure
+            </h4>
+
+            <InfrastructureDetails
+              catalog={catalog}
+              cloud={cloud}
+              region={region}
+              environment={environment}
+              service={service}
+              setCloud={setCloud}
+              setRegion={setRegion}
+              setEnvironment={setEnvironment}
+              setService={setService}
+            />
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* =================================================
+          ACTION
+          ================================================= */}
+
+      <div className="provision-action">
 
         <button
           type="submit"
           className="provision-button"
-          disabled={isSubmitting}
         >
-          {isSubmitting ? (
-            <>
-              <span className="button-spinner"></span>
-              Processing Request...
-            </>
-          ) : (
-            <>
-              <span>🚀</span>
-              Provision Application
-            </>
-          )}
+          Provision Application
         </button>
+
       </div>
 
-      {/* =====================================================
-          SUCCESS
-      ====================================================== */}
+      {/* =================================================
+          RESULT
+          ================================================= */}
 
-      {requestId && (
-        <div className="success-wrapper">
-          <SuccessCard
-            requestId={requestId}
-            deploymentPlan={deploymentPlan}
-            terraform={terraform}
-          />
-        </div>
-      )}
+      <SuccessCard
+        requestId={requestId}
+        deploymentPlan={deploymentPlan}
+        terraform={terraform}
+      />
+
     </form>
   );
 }
