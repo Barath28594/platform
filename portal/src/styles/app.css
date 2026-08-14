@@ -50,6 +50,29 @@ body {
   padding: 22px 34px 32px;
   overflow-x: hidden;
 }
+/* =========================================================
+   VELOCITY BRANDING
+   ========================================================= */
+
+.brand-logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.brand-name {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #f5f7ff;
+}
+
+.brand-subtitle {
+  font-size: 10px;
+  color: #71809b;
+  margin-top: 3px;
+}
 
 /* =========================================================
    SIDEBAR

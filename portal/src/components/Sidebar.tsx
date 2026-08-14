@@ -4,15 +4,19 @@ export default function Sidebar() {
 
       {/* BRAND */}
       <div className="brand">
-        <div className="brand-mark">
-          V
-        </div>
+  <img
+    src="/valeo-v-logo-mark.png"
+    alt="Valeo"
+    className="brand-logo"
+  />
 
-        <div>
-          <h1>VELOCITY</h1>
-          <p>Internal Developer Platform</p>
-        </div>
-      </div>
+  <div className="brand-text">
+    <div className="brand-name">VELOCITY</div>
+    <div className="brand-subtitle">
+      Internal Developer Platform
+    </div>
+  </div>
+</div>
 
       {/* NAVIGATION */}
       <nav className="sidebar-nav">
