@@ -1,0 +1,17 @@
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+.env~
+*.env~
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+.vscode/
+terraform.tfvars
+.terraform/
+*.tfstate
+*.tfstate.*

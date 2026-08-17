@@ -3,15 +3,23 @@
   --surface: #10192b;
   --surface-2: #0c1424;
   --field: #080e1a;
+
   --border: rgba(148, 163, 184, 0.16);
   --border-strong: rgba(148, 163, 184, 0.24);
+
   --text: #f8fafc;
   --muted: #94a3b8;
   --muted-2: #64748b;
+
   --primary: #5b72f5;
   --primary-2: #6c5ce7;
+
   --success: #34d399;
 }
+
+/* =========================================================
+   GLOBAL
+   ========================================================= */
 
 * {
   box-sizing: border-box;
@@ -23,13 +31,32 @@ body,
   min-height: 100%;
 }
 
+html {
+  background: var(--bg);
+}
+
 body {
   margin: 0;
   min-width: 320px;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
+
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
   background: var(--bg);
   color: var(--text);
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
 }
 
 /* =========================================================
@@ -38,93 +65,141 @@ body {
 
 .layout {
   min-height: 100vh;
+
   display: flex;
+
   background:
-    radial-gradient(circle at 78% 0%, rgba(79, 124, 255, 0.08), transparent 28%),
+    radial-gradient(
+      circle at 78% 0%,
+      rgba(79, 124, 255, 0.08),
+      transparent 28%
+    ),
     var(--bg);
 }
 
 .content {
   flex: 1;
   min-width: 0;
+
   padding: 22px 34px 32px;
+
   overflow-x: hidden;
-}
-/* =========================================================
-   VELOCITY BRANDING
-   ========================================================= */
-
-.brand-logo {
-  width: 42px;
-  height: 42px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.brand-name {
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: #f5f7ff;
-}
-
-.brand-subtitle {
-  font-size: 10px;
-  color: #71809b;
-  margin-top: 3px;
 }
 
 /* =========================================================
    SIDEBAR
-   Keep the existing sidebar visual language.
    ========================================================= */
 
 .sidebar {
   width: 224px;
   min-width: 224px;
   min-height: 100vh;
+
   position: sticky;
   top: 0;
+
   display: flex;
   flex-direction: column;
-  padding: 20px 14px;
-  background: linear-gradient(180deg, #0f172a 0%, #080d18 100%);
+
+  padding: 20px 14px 16px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #0f172a 0%,
+      #080d18 100%
+    );
+
   border-right: 1px solid var(--border);
 }
 
+/* =========================================================
+   VELOCITY BRANDING
+   ========================================================= */
+
+.brand,
 .logo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
   margin: 0 8px 28px;
 }
 
-.logo h1 {
-  margin: 0;
-  font-size: 17px;
-  line-height: 1.2;
-  letter-spacing: 0.05em;
+.brand-logo {
+  width: 42px;
+  height: 42px;
+
+  object-fit: contain;
+  object-position: center;
+
+  display: block;
+
+  margin-bottom: 8px;
+
+  flex-shrink: 0;
 }
 
-.logo p {
-  margin: 4px 0 0;
-  color: var(--muted-2);
-  font-size: 9px;
+.brand-name,
+.logo h1 {
+  margin: 0;
+
+  color: #f5f7ff;
+
+  font-size: 19px;
+  line-height: 1;
+
+  font-weight: 850;
+
+  letter-spacing: 0.045em;
 }
+
+.brand-subtitle,
+.logo p {
+  margin: 6px 0 0;
+
+  color: #71809b;
+
+  font-size: 10px;
+  line-height: 1.3;
+
+  font-weight: 500;
+}
+
+/* =========================================================
+   SIDEBAR NAVIGATION
+   ========================================================= */
 
 .sidebar nav {
   display: flex;
   flex-direction: column;
+
   gap: 4px;
+
+  flex: 0 0 auto;
 }
 
 .menu-item {
   min-height: 40px;
+
   display: flex;
   align-items: center;
+
   padding: 0 14px;
+
   border-radius: 10px;
+
   color: var(--muted);
+
   font-size: 12px;
+  line-height: 1;
+
   cursor: pointer;
-  transition: 0.18s ease;
+
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
 }
 
 .menu-item:hover {
@@ -134,45 +209,276 @@ body {
 
 .menu-item.active {
   color: #fff;
-  background: linear-gradient(135deg, #5d72ed, #6258dd);
-  box-shadow: 0 8px 22px rgba(79, 124, 255, 0.18);
+
+  background:
+    linear-gradient(
+      135deg,
+      #5d72ed,
+      #6258dd
+    );
+
+  box-shadow:
+    0 8px 22px rgba(79, 124, 255, 0.18);
 }
 
 /* =========================================================
-   HEADER
+   SIDEBAR STATUS
+   ========================================================= */
+
+/*
+   This intentionally supports both:
+   .sidebar-status
+   and the existing last sidebar container.
+
+   This means the current JSX does not need to be rewritten
+   just to fix the visual layout.
+*/
+
+.sidebar-status {
+  margin-top: auto;
+
+  margin-left: 6px;
+  margin-right: 6px;
+
+  padding: 13px 14px;
+
+  min-height: 58px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  border: 1px solid rgba(117, 132, 165, 0.16);
+
+  border-radius: 12px;
+
+  background:
+    rgba(14, 22, 38, 0.72);
+}
+
+.sidebar-status-title {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  color: #eef2ff;
+
+  font-size: 13px;
+  line-height: 1.25;
+
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+.sidebar-status-title::before {
+  content: "";
+
+  width: 7px;
+  height: 7px;
+
+  flex: 0 0 7px;
+
+  border-radius: 50%;
+
+  background: #48e6a5;
+
+  box-shadow:
+    0 0 9px rgba(72, 230, 165, 0.65);
+}
+
+.sidebar-status-text {
+  display: block;
+
+  margin-top: 4px;
+  margin-left: 15px;
+
+  color: #71809b;
+
+  font-size: 10px;
+  line-height: 1.3;
+
+  white-space: nowrap;
+}
+
+/*
+   Fallback for the existing sidebar status container
+   if it doesn't yet use the new class names.
+*/
+
+.sidebar > .sidebar-footer,
+.sidebar > .status-container {
+  margin-top: auto;
+
+  margin-left: 6px;
+  margin-right: 6px;
+
+  padding: 13px 14px;
+
+  min-height: 58px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  border: 1px solid rgba(117, 132, 165, 0.16);
+
+  border-radius: 12px;
+
+  background: rgba(14, 22, 38, 0.72);
+}
+
+/* =========================================================
+   TOP HEADER
    ========================================================= */
 
 .header {
-  min-height: 62px;
+  min-height: 72px;
+
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 20px;
+
+  gap: 24px;
+
   margin-bottom: 14px;
+
+  position: relative;
+}
+
+/*
+   Header left side.
+   The first child contains the page heading.
+*/
+
+.header > div:first-child {
+  min-width: 0;
+  flex: 1;
 }
 
 .header h2 {
   margin: 0;
-  font-size: 27px;
-  line-height: 1.05;
+
+  color: #f8fafc;
+
+  font-size: 30px;
+  line-height: 1.08;
+
+  font-weight: 800;
+
   letter-spacing: -0.035em;
 }
 
 .header p {
-  margin: 7px 0 0;
+  margin: 8px 0 0;
+
   color: var(--muted);
-  font-size: 12px;
+
+  font-size: 13px;
+  line-height: 1.4;
 }
 
-.status {
+/*
+   Header right side.
+
+   This fixes the "Platform Healthy / BK" elements
+   falling into the content area.
+*/
+
+.header > div:last-child {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 12px;
+
   flex-shrink: 0;
-  padding: 8px 12px;
+
+  margin-left: auto;
+}
+
+/* =========================================================
+   PLATFORM HEALTH BADGE
+   ========================================================= */
+
+.status {
+  min-height: 36px;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 0 13px;
+
   border: 1px solid rgba(52, 211, 153, 0.16);
+
   border-radius: 999px;
-  background: rgba(52, 211, 153, 0.045);
+
+  background:
+    rgba(52, 211, 153, 0.045);
+
   color: #9fe8c9;
-  font-size: 10px;
+
+  font-size: 11px;
+  line-height: 1;
+
   white-space: nowrap;
+}
+
+.status::before {
+  content: "";
+
+  width: 7px;
+  height: 7px;
+
+  flex: 0 0 7px;
+
+  border-radius: 50%;
+
+  background: #48e6a5;
+
+  box-shadow:
+    0 0 9px rgba(72, 230, 165, 0.65);
+}
+
+/* =========================================================
+   HEADER USER AVATAR
+   ========================================================= */
+
+/*
+   Supports common avatar class names without requiring
+   another JSX change.
+*/
+
+.user-avatar,
+.avatar,
+.header-avatar {
+  width: 38px;
+  height: 38px;
+
+  flex: 0 0 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      135deg,
+      #302b69,
+      #211c4d
+    );
+
+  border: 1px solid rgba(132, 142, 255, 0.28);
+
+  color: #f5f7ff;
+
+  font-size: 12px;
+  font-weight: 800;
 }
 
 /* =========================================================
@@ -181,35 +487,58 @@ body {
 
 .dashboard {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
   gap: 12px;
+
   margin-bottom: 16px;
 }
 
 .metric-card {
   min-width: 0;
+
   height: 94px;
+
   padding: 14px 16px;
+
   border: 1px solid var(--border);
+
   border-radius: 15px;
-  background: linear-gradient(145deg, #152039 0%, #0d1525 100%);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.15);
+
+  background:
+    linear-gradient(
+      145deg,
+      #152039 0%,
+      #0d1525 100%
+    );
+
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.15);
 }
 
 .metric-card h3 {
   margin: 0;
+
   color: #e8edf6;
+
   font-size: 13px;
   font-weight: 650;
+
   line-height: 1.2;
 }
 
 .metric-card h1 {
   margin: 10px 0 0;
+
   color: #f8fafc;
+
   font-size: 29px;
   line-height: 1;
+
   font-weight: 720;
+
   letter-spacing: -0.04em;
 }
 
@@ -219,56 +548,92 @@ body {
 
 form {
   width: 100%;
+
   margin: 0;
+
   padding: 20px 22px 18px;
+
   border: 1px solid var(--border);
+
   border-radius: 18px;
+
   background:
-    linear-gradient(145deg, rgba(19, 30, 50, 0.96), rgba(10, 17, 30, 0.96));
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
+    linear-gradient(
+      145deg,
+      rgba(19, 30, 50, 0.96),
+      rgba(10, 17, 30, 0.96)
+    );
+
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.18);
 }
+
+/* =========================================================
+   PROVISION HEADER
+   ========================================================= */
 
 .provision-head {
   display: flex;
+
   align-items: flex-start;
   justify-content: space-between;
+
   gap: 20px;
+
   padding-bottom: 14px;
+
   border-bottom: 1px solid var(--border);
 }
 
 .provision-eyebrow {
   margin-bottom: 5px;
+
   color: #7d96ff;
+
   font-size: 9px;
   font-weight: 750;
+
   letter-spacing: 0.16em;
+
   text-transform: uppercase;
 }
 
 .provision-title {
   margin: 0;
+
   font-size: 21px;
   line-height: 1.1;
+
   letter-spacing: -0.025em;
 }
 
 .provision-description {
   margin: 5px 0 0;
+
   color: var(--muted);
+
   font-size: 11px;
   line-height: 1.4;
 }
 
 .ready-pill {
   flex-shrink: 0;
+
   margin-top: 2px;
+
   padding: 7px 11px;
+
   border: 1px solid rgba(52, 211, 153, 0.16);
+
   border-radius: 999px;
-  background: rgba(52, 211, 153, 0.045);
+
+  background:
+    rgba(52, 211, 153, 0.045);
+
   color: #8ee0c0;
+
   font-size: 10px;
+
   white-space: nowrap;
 }
 
@@ -278,46 +643,64 @@ form {
 
 .blueprint-section {
   padding: 14px 0 16px;
+
   border-bottom: 1px solid var(--border);
 }
 
 .section-heading {
   display: flex;
   align-items: center;
+
   gap: 10px;
+
   margin-bottom: 10px;
 }
 
 .section-icon {
   width: 30px;
   height: 30px;
+
   flex: 0 0 30px;
+
   display: grid;
   place-items: center;
+
   border: 1px solid rgba(91, 114, 245, 0.26);
+
   border-radius: 9px;
-  background: rgba(91, 114, 245, 0.08);
+
+  background:
+    rgba(91, 114, 245, 0.08);
+
   color: #7d96ff;
+
   font-size: 13px;
 }
 
 .section-title {
   margin: 0;
+
   color: #f4f7fb;
+
   font-size: 15px;
   line-height: 1.15;
 }
 
 .section-description {
   margin: 3px 0 0;
+
   color: var(--muted);
+
   font-size: 10px;
 }
 
 .field-label {
   display: block;
+
   margin: 0 0 6px;
+
   color: #cbd5e1;
+
   font-size: 10px;
   font-weight: 600;
 }
@@ -326,14 +709,23 @@ form {
 .form-field select,
 .blueprint-field select {
   width: 100%;
+
   height: 39px;
+
   padding: 0 11px;
+
   border: 1px solid var(--border-strong);
+
   border-radius: 8px;
+
   outline: none;
+
   background: var(--field);
+
   color: var(--text);
+
   font: inherit;
+
   font-size: 11px;
 }
 
@@ -345,7 +737,9 @@ form {
 .form-field select:focus,
 .blueprint-field select:focus {
   border-color: rgba(91, 114, 245, 0.72);
-  box-shadow: 0 0 0 3px rgba(91, 114, 245, 0.10);
+
+  box-shadow:
+    0 0 0 3px rgba(91, 114, 245, 0.10);
 }
 
 .form-field input:hover,
@@ -359,23 +753,32 @@ form {
 }
 
 /* =========================================================
-   TWO-COLUMN CONFIGURATION
-   This is the important structural fix.
+   TWO COLUMN CONFIGURATION
    ========================================================= */
 
 .provision-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr);
+
   gap: 14px;
+
   padding-top: 14px;
 }
 
 .provision-section {
   min-width: 0;
+
   padding: 15px;
+
   border: 1px solid var(--border);
+
   border-radius: 13px;
-  background: rgba(7, 13, 24, 0.28);
+
+  background:
+    rgba(7, 13, 24, 0.28);
 }
 
 .provision-section .section-heading {
@@ -384,13 +787,19 @@ form {
 
 .application-fields {
   display: grid;
+
   grid-template-columns: 1fr;
+
   gap: 10px;
 }
 
 .infrastructure-fields {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr);
+
   gap: 10px 12px;
 }
 
@@ -408,11 +817,16 @@ form {
 
 .provision-footer {
   display: flex;
+
   align-items: center;
   justify-content: space-between;
+
   gap: 16px;
+
   margin-top: 14px;
+
   padding-top: 13px;
+
   border-top: 1px solid var(--border);
 }
 
@@ -422,37 +836,65 @@ form {
 
 .review-title {
   margin: 0;
+
   color: #e5eaf2;
+
   font-size: 11px;
+
   font-weight: 650;
 }
 
 .review-description {
   margin: 3px 0 0;
+
   color: var(--muted);
+
   font-size: 10px;
 }
 
 form button[type="submit"] {
   width: 230px;
+
   height: 40px;
+
   flex: 0 0 230px;
+
   margin: 0;
+
   border: 0;
+
   border-radius: 9px;
-  background: linear-gradient(135deg, #5c77f6, #6859e6);
+
+  background:
+    linear-gradient(
+      135deg,
+      #5c77f6,
+      #6859e6
+    );
+
   color: #fff;
+
   font: inherit;
+
   font-size: 11px;
+
   font-weight: 700;
+
   cursor: pointer;
-  box-shadow: 0 9px 22px rgba(79, 124, 255, 0.20);
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+
+  box-shadow:
+    0 9px 22px rgba(79, 124, 255, 0.20);
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 form button[type="submit"]:hover {
   transform: translateY(-1px);
-  box-shadow: 0 12px 26px rgba(79, 124, 255, 0.28);
+
+  box-shadow:
+    0 12px 26px rgba(79, 124, 255, 0.28);
 }
 
 /* =========================================================
@@ -461,41 +903,57 @@ form button[type="submit"]:hover {
 
 .success-card {
   margin-top: 14px;
+
   padding: 16px;
+
   border: 1px solid rgba(52, 211, 153, 0.18);
+
   border-radius: 12px;
-  background: rgba(16, 58, 48, 0.28);
+
+  background:
+    rgba(16, 58, 48, 0.28);
 }
 
 .success-card h3 {
   margin: 0 0 9px;
+
   color: #6ee7b7;
+
   font-size: 13px;
 }
 
 .success-card h4 {
   margin: 12px 0 7px;
+
   color: var(--muted);
+
   font-size: 10px;
+
   text-transform: uppercase;
+
   letter-spacing: 0.08em;
 }
 
 .success-card p,
 .success-card li {
   color: var(--muted);
+
   font-size: 10px;
 }
 
 .success-card hr {
   margin: 12px 0;
+
   border: 0;
+
   border-top: 1px solid var(--border);
 }
 
 .success-card ul {
   margin: 0;
+
   padding-left: 17px;
+
   line-height: 1.6;
 }
 
@@ -517,29 +975,37 @@ form button[type="submit"]:hover {
   .sidebar {
     width: 72px;
     min-width: 72px;
+
     padding: 18px 9px;
   }
 
+  .brand,
   .logo {
+    align-items: center;
     text-align: center;
   }
 
-  .logo h1 {
-    font-size: 0;
+  .brand-name,
+  .brand-subtitle,
+  .logo h1,
+  .logo p {
+    display: none;
   }
 
-  .logo h1:first-letter {
-    font-size: 24px;
-  }
-
-  .logo p,
   .menu-item:not(.active) {
     display: none;
   }
 
   .menu-item.active {
     justify-content: center;
+
     padding: 0;
+  }
+
+  .sidebar-status,
+  .sidebar-footer,
+  .status-container {
+    display: none;
   }
 
   .content {
@@ -547,7 +1013,8 @@ form button[type="submit"]:hover {
   }
 
   .dashboard {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
   }
 
   .infrastructure-fields {
@@ -556,12 +1023,44 @@ form button[type="submit"]:hover {
 
   .provision-footer {
     align-items: stretch;
+
     flex-direction: column;
   }
 
   form button[type="submit"] {
     width: 100%;
+
     flex-basis: 40px;
+  }
+
+  .header {
+    min-height: auto;
+  }
+
+  .header h2 {
+    font-size: 26px;
+  }
+
+  .header > div:last-child {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  .header {
+    flex-direction: column;
+  }
+
+  .header > div:last-child {
+    width: 100%;
+
+    justify-content: flex-start;
+
+    margin-left: 0;
+  }
+
+  .status {
+    display: inline-flex;
   }
 }
 
@@ -574,11 +1073,442 @@ form button[type="submit"]:hover {
     font-size: 23px;
   }
 
-  .status {
-    display: none;
-  }
-
   form {
     padding: 16px;
   }
+
+  .provision-head {
+    flex-direction: column;
+  }
+
+  .ready-pill {
+    align-self: flex-start;
+  }
+}
+
+/* =========================================================
+   VELOCITY HEADER + SIDEBAR FINAL LAYOUT
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   TOP HEADER
+   --------------------------------------------------------- */
+
+.topbar {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.topbar-content {
+  width: 100%;
+  min-height: 96px;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  box-sizing: border-box;
+}
+
+.topbar-title {
+  min-width: 0;
+}
+
+.topbar-title .eyebrow {
+  display: block;
+
+  margin-bottom: 10px;
+
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 700;
+
+  letter-spacing: 0.12em;
+
+  color: #6f8fff;
+}
+
+.topbar-title h2 {
+  margin: 0;
+
+  font-size: 28px;
+  line-height: 1.15;
+  font-weight: 800;
+
+  color: #f5f7ff;
+}
+
+.topbar-title p {
+  margin: 8px 0 0;
+
+  font-size: 13px;
+  line-height: 1.5;
+
+  color: #8d9ab3;
+}
+
+
+/* ---------------------------------------------------------
+   TOP RIGHT STATUS
+   --------------------------------------------------------- */
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 12px;
+
+  flex-shrink: 0;
+
+  padding-top: 2px;
+}
+
+.environment-pill {
+  height: 36px;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 0 14px;
+
+  box-sizing: border-box;
+
+  border: 1px solid rgba(93, 113, 157, 0.28);
+  border-radius: 999px;
+
+  background: rgba(18, 27, 48, 0.72);
+
+  color: #9daac2;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+.environment-pill .status-dot {
+  width: 7px;
+  height: 7px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: #42d99b;
+
+  box-shadow:
+    0 0 0 3px rgba(66, 217, 155, 0.10),
+    0 0 10px rgba(66, 217, 155, 0.35);
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  border: 1px solid rgba(108, 119, 255, 0.35);
+
+  background:
+    linear-gradient(
+      145deg,
+      #29275f,
+      #17183d
+    );
+
+  color: #f3f5ff;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  letter-spacing: 0.04em;
+
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.20);
+}
+
+
+/* ---------------------------------------------------------
+   SIDEBAR
+   --------------------------------------------------------- */
+
+.sidebar {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+
+  height: 100vh;
+  min-height: 100vh;
+
+  box-sizing: border-box;
+}
+
+
+/* ---------------------------------------------------------
+   SIDEBAR BRAND
+   --------------------------------------------------------- */
+
+.brand {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  flex-shrink: 0;
+}
+
+.brand-logo {
+  width: 42px;
+  height: 42px;
+
+  object-fit: contain;
+
+  flex-shrink: 0;
+}
+
+.brand-info {
+  min-width: 0;
+}
+
+.brand-name {
+  font-size: 18px;
+  line-height: 1.1;
+
+  font-weight: 800;
+
+  letter-spacing: 0.04em;
+
+  color: #f5f7ff;
+}
+
+.brand-subtitle {
+  margin-top: 4px;
+
+  font-size: 10px;
+  line-height: 1.2;
+
+  color: #71809b;
+
+  white-space: nowrap;
+}
+
+
+/* ---------------------------------------------------------
+   SIDEBAR NAVIGATION
+   --------------------------------------------------------- */
+
+.sidebar-nav {
+  flex: 1;
+
+  min-height: 0;
+}
+
+.nav-section {
+  margin-bottom: 26px;
+}
+
+.nav-section-title {
+  display: block;
+
+  margin-bottom: 9px;
+
+  font-size: 9px;
+  line-height: 1;
+
+  font-weight: 700;
+
+  letter-spacing: 0.16em;
+
+  color: #52607a;
+}
+
+.menu-item {
+  min-height: 40px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  box-sizing: border-box;
+
+  padding: 0 12px;
+
+  margin-bottom: 4px;
+
+  border-radius: 9px;
+
+  color: #8e9ab2;
+
+  font-size: 12px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.menu-item:hover {
+  background: rgba(91, 103, 219, 0.08);
+
+  color: #dbe1f5;
+}
+
+.menu-item.active {
+  background:
+    linear-gradient(
+      135deg,
+      #6171ed,
+      #6259d9
+    );
+
+  color: #ffffff;
+
+  box-shadow:
+    0 8px 20px rgba(75, 78, 210, 0.20);
+}
+
+.nav-icon {
+  width: 16px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  font-size: 13px;
+}
+
+
+/* ---------------------------------------------------------
+   SIDEBAR FOOTER / PLATFORM STATUS
+   --------------------------------------------------------- */
+
+.sidebar-footer {
+  flex-shrink: 0;
+
+  width: 100%;
+
+  box-sizing: border-box;
+
+  padding-top: 14px;
+}
+
+.platform-status {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  box-sizing: border-box;
+
+  padding: 11px 12px;
+
+  border: 1px solid rgba(84, 102, 143, 0.25);
+
+  border-radius: 10px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(20, 30, 52, 0.92),
+      rgba(12, 19, 35, 0.92)
+    );
+}
+
+.platform-status > .status-dot {
+  width: 7px;
+  height: 7px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: #42d99b;
+
+  box-shadow:
+    0 0 0 3px rgba(66, 217, 155, 0.09),
+    0 0 9px rgba(66, 217, 155, 0.35);
+}
+
+.platform-status-text {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.platform-status strong {
+  display: block;
+
+  font-size: 11px;
+  line-height: 1.2;
+
+  font-weight: 700;
+
+  color: #e9edf8;
+
+  white-space: nowrap;
+}
+
+.platform-status small {
+  display: block;
+
+  font-size: 9px;
+  line-height: 1.2;
+
+  color: #6f7d98;
+
+  white-space: nowrap;
+}
+
+
+/* ---------------------------------------------------------
+   RESPONSIVE SAFETY
+   --------------------------------------------------------- */
+
+@media (max-width: 1100px) {
+
+  .topbar-title h2 {
+    font-size: 25px;
+  }
+
+  .environment-pill {
+    padding: 0 11px;
+  }
+
+}
+
+@media (max-width: 800px) {
+
+  .topbar-content {
+    min-height: 90px;
+  }
+
+  .topbar-actions {
+    gap: 8px;
+  }
+
+  .environment-pill {
+    display: none;
+  }
+
 }
